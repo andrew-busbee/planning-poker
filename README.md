@@ -116,7 +116,6 @@ The included `docker-compose.yml` provides:
 - Port mapping (3001:3001)
 - Health checks
 - Restart policy
-- Traefik labels for reverse proxy (optional)
 
 ### Production Considerations
 - Use a reverse proxy (nginx, Traefik) for SSL termination

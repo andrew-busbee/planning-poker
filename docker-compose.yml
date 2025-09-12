@@ -14,7 +14,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.planning-poker.rule=Host(`planning-poker.localhost`)"
-      - "traefik.http.services.planning-poker.loadbalancer.server.port=3001"
