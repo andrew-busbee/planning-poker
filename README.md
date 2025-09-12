@@ -44,8 +44,8 @@ Special cards:
 <td width="50%"><strong>Dark Mode</strong></td>
 </tr>
 <tr>
-<td><img src="client/public/new_game_light_mode.png" alt="New Game Menu - Light Mode" width="100%"></td>
-<td><img src="client/public/new_game_dark_mode.png" alt="New Game Menu - Dark Mode" width="100%"></td>
+<td><img src="./client/public/new_game_light_mode.png" alt="New Game Menu - Light Mode" width="100%"></td>
+<td><img src="./client/public/new_game_dark_mode.png" alt="New Game Menu - Dark Mode" width="100%"></td>
 </tr>
 </table>
 
@@ -56,8 +56,8 @@ Special cards:
 <td width="50%"><strong>Dark Mode</strong></td>
 </tr>
 <tr>
-<td><img src="client/public/player_light_mode.png" alt="Player View - Light Mode" width="100%"></td>
-<td><img src="client/public/player_dark_mode.png" alt="Player View - Dark Mode" width="100%"></td>
+<td><img src="./client/public/player_light_mode.png" alt="Player View - Light Mode" width="100%"></td>
+<td><img src="./client/public/player_dark_mode.png" alt="Player View - Dark Mode" width="100%"></td>
 </tr>
 </table>
 
@@ -68,8 +68,8 @@ Special cards:
 <td width="50%"><strong>Dark Mode</strong></td>
 </tr>
 <tr>
-<td><img src="client/public/watcher_light_mode.png" alt="Watcher View - Light Mode" width="100%"></td>
-<td><img src="client/public/watcher_dark_mode.png" alt="Watcher View - Dark Mode" width="100%"></td>
+<td><img src="./client/public/watcher_light_mode.png" alt="Watcher View - Light Mode" width="100%"></td>
+<td><img src="./client/public/watcher_dark_mode.png" alt="Watcher View - Dark Mode" width="100%"></td>
 </tr>
 </table>
 
