@@ -1,4 +1,4 @@
-# Planning Poker Application
+# Planning Poker
 
 A real-time planning poker application for agile estimation, deployable via Docker. No login required - each session creates a unique game URL that can be shared with team members.
 

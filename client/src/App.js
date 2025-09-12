@@ -3,6 +3,7 @@ import io from 'socket.io-client';
 import GameSetup from './components/GameSetup';
 import GameRoom from './components/GameRoom';
 import ThemeToggle from './components/ThemeToggle';
+import Footer from './components/Footer';
 import './App.css';
 
 const socket = io();
@@ -120,15 +121,18 @@ function App() {
 
   if (gameId && game) {
     return (
-      <div className="container">
-        <GameRoom
-          game={game}
-          playerName={playerName}
-          isWatcher={isWatcher}
-          socket={socket}
-          currentSocketId={currentSocketId}
-          onLeaveGame={handleLeaveGame}
-        />
+      <div>
+        <div className="container">
+          <GameRoom
+            game={game}
+            playerName={playerName}
+            isWatcher={isWatcher}
+            socket={socket}
+            currentSocketId={currentSocketId}
+            onLeaveGame={handleLeaveGame}
+          />
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -154,6 +158,7 @@ function App() {
           onJoinGame={handleJoinGame}
         />
       </div>
+      <Footer />
     </div>
   );
 }
