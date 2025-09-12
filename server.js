@@ -280,6 +280,14 @@ app.get('/api/decks', (req, res) => {
   res.json(CARD_DECKS);
 });
 
+// Read version once at startup for security
+const APP_VERSION = require('./package.json').version;
+
+app.get('/api/version', (req, res) => {
+  // Return pre-loaded version (no file system access at runtime)
+  res.json({ version: APP_VERSION });
+});
+
 app.get('/api/game/:gameId', (req, res) => {
   const game = games.get(req.params.gameId);
   if (!game) {
