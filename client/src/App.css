@@ -430,11 +430,27 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+  position: relative;
 }
 
 .footer-left {
   display: flex;
   align-items: center;
+}
+
+.footer-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.app-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .footer-right {
@@ -492,9 +508,20 @@ body {
     text-align: center;
   }
   
-  .footer-left,
+  .footer-center {
+    position: static;
+    transform: none;
+    order: 1;
+  }
+  
+  .footer-left {
+    justify-content: center;
+    order: 2;
+  }
+  
   .footer-right {
     justify-content: center;
+    order: 3;
   }
   
   .app-footer {
