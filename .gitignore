@@ -1,3 +1,6 @@
+#ignore the override file
+docker-compose.override.yml
+
 # Dependencies
 node_modules/
 client/node_modules/
