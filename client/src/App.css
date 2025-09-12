@@ -446,11 +446,11 @@
 }
 
 .app-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: var(--text-primary);
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: normal;
+  color: var(--text-muted);
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .footer-right {

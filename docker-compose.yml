@@ -2,7 +2,7 @@ services:
   planning-poker:
     image: ghcr.io/andrew-busbee/planning-poker:latest
     ports:
-      - "3001:3001"
+      - "3045:3001"
     environment:
       - PORT=3001
     restart: unless-stopped
