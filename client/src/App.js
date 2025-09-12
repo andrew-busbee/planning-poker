@@ -148,7 +148,24 @@ function App() {
         
         {error && (
           <div className="card" style={{ background: '#f8d7da', color: '#721c24', border: '1px solid #f5c6cb' }}>
-            <p>{error}</p>
+            <p>
+              {error}
+              {error === 'Game not found' && (
+                <span>
+                  {' '}
+                  <a 
+                    href="/" 
+                    style={{ color: '#721c24', textDecoration: 'underline', fontWeight: 'bold' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.location.href = '/';
+                    }}
+                  >
+                    Click here to start a new game!
+                  </a>
+                </span>
+              )}
+            </p>
           </div>
         )}
 

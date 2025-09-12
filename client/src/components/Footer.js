@@ -25,7 +25,7 @@ const Footer = () => {
           </a>
         </div>
         <div className="footer-right">
-          © 2025 <a href="https://go2wna.com" target="_blank" rel="noopener noreferrer">Andrew Busbee</a>. All rights reserved. 
+          © 2025&nbsp;<a href="https://go2wna.com" target="_blank" rel="noopener noreferrer">Andrew Busbee</a>. All rights reserved. 
         </div>
       </div>
     </footer>
