@@ -26,6 +26,9 @@ XS, S, M, L, XL, XXL, ?, !, ⏸️
 ### Linear (1-10)
 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ?, !, ⏸️
 
+### Custom Deck
+Create your own custom deck to use during the game
+
 Special cards:
 - `?` - Need more information
 - `!` - Too complex to estimate
@@ -53,33 +56,6 @@ Special cards:
    docker run -p 3001:3001 planning-poker
    ```
 3. Open your browser to `http://localhost:3001`
-
-## Development Setup
-
-### Prerequisites
-- Node.js 18+ 
-- npm 9+
-
-### Setup
-1. Install dependencies:
-   ```bash
-   npm install
-   cd client && npm install
-   ```
-
-2. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-3. The application will be available at `http://localhost:3001`
-
-### Build Optimization
-The project uses optimized build settings to minimize warnings:
-- **npm ci** for faster, reliable builds
-- **Updated dependencies** to latest stable versions
-- **Suppressed warnings** for cleaner build output
-- **Node.js 18+** requirement for modern features
 
 ## How to Use
 

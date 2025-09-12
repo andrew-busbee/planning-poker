@@ -20,6 +20,7 @@ RUN cd client && npm run build
 
 # Production stage
 FROM node:18-alpine
+LABEL org.opencontainers.image.source="https://github.com/andrew-busbee/planning-poker"
 
 # Set working directory
 WORKDIR /app
