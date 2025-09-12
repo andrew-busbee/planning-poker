@@ -9,22 +9,23 @@ A real-time planning poker application for agile estimation, deployable via Dock
 - 👁️ **Watcher mode** for observers who can reveal votes and reset games
 - 🔗 **Shareable game URLs** - no login required
 - 📱 **Responsive design** that works on desktop and mobile
+- 🌓 **Light and dark modes** with theme toggle
 - 🐳 **Docker deployment** ready
 - ⚡ **Instant updates** when players join, vote, or reveal results
 
 ## Card Decks
 
 ### Fibonacci (Default)
-0, 1, 2, 3, 5, 8, 13, ?, !, ⏸️
+0, 1, 2, 3, 5, 8, 13, ?, !, ☕
 
 ### T-Shirt Sizing
-XS, S, M, L, XL, XXL, ?, !, ⏸️
+XS, S, M, L, XL, XXL, ?, !, ☕
 
 ### Powers of 2
-0, 1, 2, 4, 8, 16, 32, ?, !, ⏸️
+0, 1, 2, 4, 8, 16, 32, ?, !, ☕
 
 ### Linear (1-10)
-1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ?, !, ⏸️
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ?, !, ☕
 
 ### Custom Deck
 Create your own custom deck to use during the game
@@ -32,29 +33,62 @@ Create your own custom deck to use during the game
 Special cards:
 - `?` - Need more information
 - `!` - Too complex to estimate
-- `⏸️` - Take a break
+- `☕` - Take a break
+
+## Screenshots
+
+### New Game Menu
+<table>
+<tr>
+<td width="50%"><strong>Light Mode</strong></td>
+<td width="50%"><strong>Dark Mode</strong></td>
+</tr>
+<tr>
+<td><img src="client/public/new_game_light_mode.png" alt="New Game Menu - Light Mode" width="100%"></td>
+<td><img src="client/public/new_game_dark_mode.png" alt="New Game Menu - Dark Mode" width="100%"></td>
+</tr>
+</table>
+
+### Player View
+<table>
+<tr>
+<td width="50%"><strong>Light Mode</strong></td>
+<td width="50%"><strong>Dark Mode</strong></td>
+</tr>
+<tr>
+<td><img src="client/public/player_light_mode.png" alt="Player View - Light Mode" width="100%"></td>
+<td><img src="client/public/player_dark_mode.png" alt="Player View - Dark Mode" width="100%"></td>
+</tr>
+</table>
+
+### Watcher View
+<table>
+<tr>
+<td width="50%"><strong>Light Mode</strong></td>
+<td width="50%"><strong>Dark Mode</strong></td>
+</tr>
+<tr>
+<td><img src="client/public/watcher_light_mode.png" alt="Watcher View - Light Mode" width="100%"></td>
+<td><img src="client/public/watcher_dark_mode.png" alt="Watcher View - Dark Mode" width="100%"></td>
+</tr>
+</table>
+
 
 ## Quick Start with Docker
 
 ### Using Docker Compose (Recommended)
 
-1. Clone or download this repository
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/andrew-busbee/planning-poker.git
+   cd planning-poker
+   ```
+
 2. Run the application:
    ```bash
    docker-compose up -d
    ```
-3. Open your browser to `http://localhost:3001`
 
-### Using Docker directly
-
-1. Build the image:
-   ```bash
-   docker build -t planning-poker .
-   ```
-2. Run the container:
-   ```bash
-   docker run -p 3001:3001 planning-poker
-   ```
 3. Open your browser to `http://localhost:3001`
 
 ## How to Use
