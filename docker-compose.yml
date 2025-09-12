@@ -3,7 +3,7 @@ services:
     image: ghcr.io/andrew-busbee/planning-poker:latest
     pull_policy: always        # always pull the newest :latest on start (Otional)
     ports:
-      - "3003:3001"
+      - "3001:3001"
     environment:
       - NODE_ENV=production
       - PORT=3001
