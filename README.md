@@ -70,23 +70,6 @@ Special cards:
 
 ## Quick Start with Docker
 
-### Using Docker Compose (Recommended)
-
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/andrew-busbee/planning-poker.git
-   cd planning-poker
-   ```
-
-2. Run the application:
-   ```bash
-   docker-compose up -d
-   ```
-
-3. Open your browser to `http://localhost:3001`
-
-## Deployment
-
 The easiest way to deploy the application is with Docker or Docker Compose.  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file has an optional healthcheck as well:
 
 ### Docker
