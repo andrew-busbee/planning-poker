@@ -40,40 +40,6 @@ Special cards:
 ## Screenshots
 
 ### New Game Menu
-<table>
-<tr>
-<td width="50%"><strong>Light Mode</strong></td>
-<td width="50%"><strong>Dark Mode</strong></td>
-</tr>
-<tr>
-<td><img src="https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/new_game_light_mode.png" alt="New Game Menu - Light Mode" width="100%"></td>
-<td><img src="https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/new_game_dark_mode.png" alt="New Game Menu - Dark Mode" width="100%"></td>
-</tr>
-</table>
-
-### Player View
-<table>
-<tr>
-<td width="50%"><strong>Light Mode</strong></td>
-<td width="50%"><strong>Dark Mode</strong></td>
-</tr>
-<tr>
-<td><img src="https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/player_light_mode.png" alt="Player View - Light Mode" width="100%"></td>
-<td><img src="https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/player_dark_mode.png" alt="Player View - Dark Mode" width="100%"></td>
-</tr>
-</table>
-
-### Watcher View
-<table>
-<tr>
-<td width="50%"><strong>Light Mode</strong></td>
-<td width="50%"><strong>Dark Mode</strong></td>
-</tr>
-<tr>
-<td><img src="https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_light_mode.png" alt="Watcher View - Light Mode" width="100%"></td>
-<td><img src="https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_dark_mode.png" alt="Watcher View - Dark Mode" width="100%"></td>
-</tr>
-</table>
 
 | **Light Mode** | **Dark Mode** |
 | -------------- | -------------- |
