@@ -85,6 +85,33 @@ Special cards:
 
 3. Open your browser to `http://localhost:3001`
 
+## Deployment
+
+The easiest way to deploy the application is with Docker or Docker Compose.  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file has an optional healthcheck as well:
+
+### Docker
+```bash
+docker run -d \
+  --name planning-poker \
+  -p 3001:3001 \
+  -e PORT=3001 \
+  --restart unless-stopped \
+  andrewbusbee/planning-poker:latest
+
+```
+
+### Docker-compose
+```yml
+services:
+  planning-poker:
+    image: andrewbusbee/planning-poker:latest
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+    restart: unless-stopped
+```
+
 ## How to Use
 
 1. **Create a Game**: Enter your name and select a card deck type
