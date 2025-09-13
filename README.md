@@ -1,12 +1,11 @@
 
-<!--
-[![Docker Hub Version](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
-[![Docker Pulls](https://img.shields.io/docker/pulls/andrewbusbee/planning-poker?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
-[![Image Size](https://img.shields.io/docker/image-size/andrewbusbee/planning-poker/latest?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
--->
 [![Last commit](https://img.shields.io/github/last-commit/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/commits/main)
 [![License](https://img.shields.io/github/license/andrew-busbee/planning-poker?cacheBust=1)](https://github.com/andrew-busbee/planning-poker/blob/main/LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/releases)
+
+[![Docker Hub Version](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
+[![Docker Pulls](https://img.shields.io/docker/pulls/andrewbusbee/planning-poker?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
+[![Image Size](https://img.shields.io/docker/image-size/andrewbusbee/planning-poker/latest?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
 
 # Planning Poker
 
