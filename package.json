@@ -20,8 +20,12 @@
     "nodemon": "^3.1.0"
   },
   "keywords": ["planning-poker", "scrum", "estimation", "agile"],
-  "author": "Planning Poker App",
+  "author": "Andrew Busbee (https://github.com/andrew-busbee)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andrew-busbee/planning-poker.git"
+  },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
