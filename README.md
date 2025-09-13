@@ -1,11 +1,17 @@
-
-[![Last commit](https://img.shields.io/github/last-commit/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/commits/main)
 [![License](https://img.shields.io/github/license/andrew-busbee/planning-poker?cacheBust=1)](https://github.com/andrew-busbee/planning-poker/blob/main/LICENSE)
-[![GitHub release](https://img.shields.io/github/v/release/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/releases)
 
-[![Docker Hub Version](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
-[![Docker Pulls](https://img.shields.io/docker/pulls/andrewbusbee/planning-poker?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
-[![Image Size](https://img.shields.io/docker/image-size/andrewbusbee/planning-poker/latest?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
+<!-- Project / GitHub -->
+[![License](https://img.shields.io/github/license/andrew-busbee/planning-poker?logo=github&label=License)](https://github.com/andrew-busbee/planning-poker/blob/main/LICENSE)
+[![Version](https://img.shields.io/github/v/release/andrewbusbee/planning-poker?sort=semver&logo=github&label=Version)](https://github.com/andrewbusbee/planning-poker/releases)
+[![Stars](https://img.shields.io/github/stars/andrewbusbee/planning-poker?logo=github&label=Stars)](https://github.com/andrewbusbee/planning-poker/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/andrewbusbee/planning-poker?logo=github&label=Last%20commit)](https://github.com/andrewbusbee/planning-poker/commits/main)
+
+<!-- Docker Hub -->
+[![Version](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker&label=Version)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
+[![Pulls](https://img.shields.io/docker/pulls/andrewbusbee/planning-poker?logo=docker&label=Pulls)](https://hub.docker.com/r/andrewbusbee/planning-poker)
+[![Stars](https://img.shields.io/github/stars/andrewbusbee/planning-poker?logo=github&label=Stars)](https://github.com/andrewbusbee/planning-poker/stargazers)
+[![Image size](https://img.shields.io/docker/image-size/andrewbusbee/planning-poker/latest?logo=docker&label=Image%20size)](https://hub.docker.com/r/andrewbusbee/planning-poker)
+
 
 # Planning Poker
 
