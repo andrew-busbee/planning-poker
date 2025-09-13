@@ -16,13 +16,10 @@ A real-time planning poker application for agile estimation, deployable via Dock
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/whatsnewandrew)
 
-
-
-
 ## Features
 
 - 🎯 **Real-time voting** with WebSocket communication
-- 🃏 **Multiple card decks**: Fibonacci, T-shirt sizing, Powers of 2, and Linear
+- 🃏 **Multiple card decks**: Fibonacci, T-shirt sizing, Powers of 2, Linear, or create your own
 - 👁️ **Watcher mode** for observers who can reveal votes and reset games
 - 🔗 **Shareable game URLs** - no login required
 - 📱 **Responsive design** that works on desktop and mobile

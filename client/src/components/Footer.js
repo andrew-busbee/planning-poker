@@ -25,7 +25,16 @@ const Footer = () => {
           </a>
         </div>
         <div className="footer-center">
-          <div className="app-title">Planning Poker v0.1.0-beta.3</div>
+          <div className="app-title">
+            Planning Poker <a 
+              href="https://github.com/andrew-busbee/planning-poker/releases/tag/untagged-82ab15d3a9332145e0f4" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="version-link"
+            >
+              v1.0.0
+            </a>
+          </div>
         </div>
         <div className="footer-right">
           © 2025&nbsp;<a href="https://go2wna.com" target="_blank" rel="noopener noreferrer">Andrew Busbee</a>. All rights reserved. 

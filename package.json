@@ -1,6 +1,6 @@
 {
   "name": "planning-poker",
-  "version": "v0.1.0-beta.3",
+  "version": "1.0.0",
   "description": "A real-time planning poker application with multiple deck options",
   "main": "server.js",
   "scripts": {
