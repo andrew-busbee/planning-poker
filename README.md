@@ -1,11 +1,20 @@
+
+[![Docker Hub Version](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
+[![Docker Pulls](https://img.shields.io/docker/pulls/andrewbusbee/planning-poker?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
+<!--
+[![GitHub release](https://img.shields.io/github/v/release/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/releases)
+-->
+[![Last commit](https://img.shields.io/github/last-commit/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/commits/main)
+[![Image Size](https://img.shields.io/docker/image-size/andrewbusbee/planning-poker/latest?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
+[![License](https://img.shields.io/github/license/andrew-busbee/planning-poker)](https://github.com/andrew-busbee/planning-poker/blob/main/LICENSE)
+
 # Planning Poker
 
 A real-time planning poker application for agile estimation, deployable via Docker. No login required - each session creates a unique game URL that can be shared with team members.
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/whatsnewandrew)
 
-[![GitHub release](https://img.shields.io/github/v/release/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/releases)
-[![Last commit](https://img.shields.io/github/last-commit/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/commits/main)
+
 
 
 ## Features
