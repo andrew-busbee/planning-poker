@@ -2,11 +2,7 @@
 
 A real-time planning poker application for agile estimation, deployable via Docker. No login required - each session creates a unique game URL that can be shared with team members.
 
-<div align="left">
-  <a href="https://www.buymeacoffee.com/whatsnewandrew">
-    <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=whatsnewandrew&button_colour=cfb87c&font_colour=000000&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
-  </a>
-</div>
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/whatsnewandrew)
 
 ## Features
 
@@ -78,6 +74,22 @@ Special cards:
 <td><img src="https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_dark_mode.png" alt="Watcher View - Dark Mode" width="100%"></td>
 </tr>
 </table>
+
+| **Light Mode** | **Dark Mode** |
+| -------------- | -------------- |
+| ![New Game Menu - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/new_game_light_mode.png) | ![New Game Menu - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/new_game_dark_mode.png) |
+
+### Player View
+
+| **Light Mode** | **Dark Mode** |
+| -------------- | -------------- |
+| ![Player View - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/player_light_mode.png) | ![Player View - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/player_dark_mode.png) |
+
+### Watcher View
+
+| **Light Mode** | **Dark Mode** |
+| -------------- | -------------- |
+| ![Watcher View - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_light_mode.png) | ![Watcher View - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_dark_mode.png) |
 
 
 ## Quick Start with Docker
