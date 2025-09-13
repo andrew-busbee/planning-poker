@@ -27,7 +27,7 @@ const Footer = () => {
         <div className="footer-center">
           <div className="app-title">
             Planning Poker <a 
-              href="https://github.com/andrew-busbee/planning-poker/releases/tag/untagged-82ab15d3a9332145e0f4" 
+              href="https://github.com/andrew-busbee/planning-poker/releases/tag/untagged-810af2974c72c551af64" 
               target="_blank" 
               rel="noopener noreferrer"
               className="version-link"
