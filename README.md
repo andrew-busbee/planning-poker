@@ -1,27 +1,12 @@
-[![License](https://img.shields.io/github/license/andrew-busbee/planning-poker?cacheBust=1)](https://github.com/andrew-busbee/planning-poker/blob/main/LICENSE)
-<!--
-[![Docker Hub Version](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
-[![Docker Pulls](https://img.shields.io/docker/pulls/andrewbusbee/planning-poker?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
-[![Image Size](https://img.shields.io/docker/image-size/andrewbusbee/planning-poker/latest?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
--->
-
 <!-- Project / GitHub -->
 [![Release](https://img.shields.io/github/v/release/andrew-busbee/planning-poker?logo=github&label=Release)](https://github.com/andrew-busbee/planning-poker/releases)
 [![Last commit](https://img.shields.io/github/last-commit/andrew-busbee/planning-poker?logo=github&label=Last%20commit)](https://github.com/andrew-busbee/planning-poker/commits/main)
-
-[![GitHub release](https://img.shields.io/github/v/release/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/releases)
-[![Last commit](https://img.shields.io/github/last-commit/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/commits/main)
-
 <!-- Docker Hub -->
 [![Release](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker&label=Release)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
-
-[![Version](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker&label=Version)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
 [![Pulls](https://img.shields.io/docker/pulls/andrewbusbee/planning-poker?logo=docker&label=Pulls)](https://hub.docker.com/r/andrewbusbee/planning-poker)
 [![Image size](https://img.shields.io/docker/image-size/andrewbusbee/planning-poker/latest?logo=docker&label=Image%20size)](https://hub.docker.com/r/andrewbusbee/planning-poker)
 
-
-
-
+[![License](https://img.shields.io/github/license/andrew-busbee/planning-poker?cacheBust=1)](https://github.com/andrew-busbee/planning-poker/blob/main/LICENSE)
 
 # Planning Poker
 
