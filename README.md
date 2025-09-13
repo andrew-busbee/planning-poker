@@ -134,7 +134,6 @@ Special cards:
 
 ### Environment Variables
 - `PORT` - Server port (default: 3001)
-- `NODE_ENV` - Environment (development/production)
 
 ### Docker Configuration
 The application includes:
@@ -154,8 +153,6 @@ The included `docker-compose.yml` provides:
 ### Production Considerations
 - Use a reverse proxy (nginx, Traefik) for SSL termination
 - Set up proper logging and monitoring
-- Consider using Docker secrets for sensitive configuration
-- Use a container orchestration platform for high availability
 
 ## Contributing
 
@@ -165,35 +162,10 @@ The included `docker-compose.yml` provides:
 4. Test thoroughly
 5. Submit a pull request
 
-## License
-
-MIT License - see LICENSE file for details
-
-## Troubleshooting
-
-### Common Issues
-
-**Port already in use**
-```bash
-# Change the port in docker-compose.yml or use a different port
-docker-compose up -d --scale planning-poker=0
-docker-compose up -d
-```
-
-**Container won't start**
-```bash
-# Check logs
-docker-compose logs planning-poker
-
-# Rebuild the image
-docker-compose build --no-cache
-```
-
-**WebSocket connection issues**
-- Ensure your reverse proxy supports WebSocket upgrades
-- Check firewall settings
-- Verify the correct port is exposed
-
 ## Support
 
 For issues and questions, please create an issue in the repository.
+
+## License
+
+MIT License - see LICENSE file for details
