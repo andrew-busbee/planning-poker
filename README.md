@@ -4,7 +4,7 @@ A real-time planning poker application for agile estimation, deployable via Dock
 
 <div align="left">
   <a href="https://buymeacoffee.com/whatsnewandrew" target="_blank">
-    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
+    <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=whatsnewandrew&button_colour=cfb87c&font_colour=000000&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
   </a>
 </div>
 
