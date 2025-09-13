@@ -2,6 +2,12 @@
 
 A real-time planning poker application for agile estimation, deployable via Docker. No login required - each session creates a unique game URL that can be shared with team members.
 
+<div align="left">
+  <a href="https://buymeacoffee.com/whatsnewandrew" target="_blank">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
+  </a>
+</div>
+
 ## Features
 
 - 🎯 **Real-time voting** with WebSocket communication
