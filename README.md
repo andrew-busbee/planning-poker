@@ -1,5 +1,4 @@
 [![License](https://img.shields.io/github/license/andrew-busbee/planning-poker?cacheBust=1)](https://github.com/andrew-busbee/planning-poker/blob/main/LICENSE)
-[![Last commit](https://img.shields.io/github/last-commit/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/commits/main)
 <!--
 [![Docker Hub Version](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
 [![Docker Pulls](https://img.shields.io/docker/pulls/andrewbusbee/planning-poker?logo=docker)](https://hub.docker.com/r/andrewbusbee/planning-poker)
@@ -7,8 +6,8 @@
 -->
 
 <!-- Project / GitHub -->
-[![Version](https://img.shields.io/github/v/release/andrewbusbee/planning-poker?sort=semver&logo=github&label=Version)](https://github.com/andrewbusbee/planning-poker/releases)
-[![Last commit](https://img.shields.io/github/last-commit/andrewbusbee/planning-poker?logo=github&label=Last%20commit)](https://github.com/andrewbusbee/planning-poker/commits/main)
+[![GitHub release](https://img.shields.io/github/v/release/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/releases)
+[![Last commit](https://img.shields.io/github/last-commit/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/commits/main)
 
 <!-- Docker Hub -->
 [![Version](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker&label=Version)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
@@ -17,7 +16,7 @@
 
 
 
-[![GitHub release](https://img.shields.io/github/v/release/andrew-busbee/planning-poker?logo=github)](https://github.com/andrew-busbee/planning-poker/releases)
+
 
 # Planning Poker
 
