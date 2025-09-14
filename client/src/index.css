@@ -275,8 +275,8 @@ code {
 /* Card Flip Animation */
 .card-flip {
   perspective: 1000px;
-  width: 80px;
-  height: 112px; /* Adjusted to better match card aspect ratio */
+  width: 88px;
+  height: 123px; /* Adjusted to better match card aspect ratio */
   margin: 0 auto 10px;
 }
 
@@ -525,8 +525,8 @@ code {
   }
   
   .card-flip {
-    width: 60px;
-    height: 84px; /* Adjusted to better match card aspect ratio */
+    width: 66px;
+    height: 92px; /* Adjusted to better match card aspect ratio */
   }
   
   .card-front, .card-back {
