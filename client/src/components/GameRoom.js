@@ -39,6 +39,31 @@ const GameRoom = ({ game, playerName, isWatcher, socket, currentSocketId, onTogg
     };
   }, [socket]);
 
+  // Reset selected card when current player becomes a watcher
+  useEffect(() => {
+    const currentPlayer = game.players.find(p => p.id === currentSocketId);
+    const currentIsWatcher = currentPlayer ? currentPlayer.isWatcher : isWatcher;
+    
+    // If the current player is a watcher, reset their selected card
+    if (currentIsWatcher) {
+      setSelectedCard(null);
+    }
+  }, [game.players, currentSocketId, isWatcher]);
+
+  // Listen for deck changes and reset selected card
+  useEffect(() => {
+    const handleDeckChanged = (updatedGame) => {
+      // Reset selected card when deck changes
+      setSelectedCard(null);
+    };
+
+    socket.on('deck-changed', handleDeckChanged);
+
+    return () => {
+      socket.off('deck-changed', handleDeckChanged);
+    };
+  }, [socket]);
+
   const handleCardSelect = (card) => {
     if (isWatcher || game.revealed) return;
     

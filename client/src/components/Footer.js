@@ -27,12 +27,12 @@ const Footer = () => {
         <div className="footer-center">
           <div className="app-title">
             Planning Poker <a 
-              href="https://github.com/andrew-busbee/planning-poker/releases/tag/v1.1.0" 
+              href="https://github.com/andrew-busbee/planning-poker/releases/tag/v1.1.1" 
               target="_blank" 
               rel="noopener noreferrer"
               className="version-link"
             >
-              v1.1.0
+              v1.1.1
             </a>
           </div>
         </div>
