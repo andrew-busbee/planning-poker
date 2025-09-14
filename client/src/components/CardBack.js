@@ -9,7 +9,7 @@ const CardBack = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundColor: 'black'
+        backgroundColor: 'white'
       }}
     >
     </div>
