@@ -59,6 +59,20 @@ function App() {
 
     socket.on('role-toggled', (gameState) => {
       setGame(gameState);
+      // Update isWatcher state for current player
+      const currentPlayer = gameState.players.find(p => p.id === currentSocketId);
+      if (currentPlayer) {
+        setIsWatcher(currentPlayer.isWatcher);
+      }
+    });
+
+    socket.on('name-changed', (gameState) => {
+      setGame(gameState);
+      // Update playerName state for current player
+      const currentPlayer = gameState.players.find(p => p.id === currentSocketId);
+      if (currentPlayer) {
+        setPlayerName(currentPlayer.name);
+      }
     });
 
     socket.on('player-left', (gameState) => {
@@ -119,6 +133,12 @@ function App() {
     window.history.pushState({}, '', '/');
   };
 
+  const handleToggleRole = () => {
+    if (gameId) {
+      socket.emit('toggle-role', { gameId });
+    }
+  };
+
   if (gameId && game) {
     return (
       <div>
@@ -129,7 +149,7 @@ function App() {
             isWatcher={isWatcher}
             socket={socket}
             currentSocketId={currentSocketId}
-            onLeaveGame={handleLeaveGame}
+            onToggleRole={handleToggleRole}
           />
         </div>
         <Footer />
@@ -150,7 +170,7 @@ function App() {
           <div className="card" style={{ background: '#f8d7da', color: '#721c24', border: '1px solid #f5c6cb' }}>
             <p>
               {error}
-              {error === 'Game not found' && (
+              {error === 'Game not found.' && (
                 <span>
                   {' '}
                   <a 

@@ -20,24 +20,10 @@ const CardDeck = ({ deck, onCardSelect, selectedCard, hasVoted, isWatcher, revea
   };
 
   const getCardStyle = (card) => {
-    const baseStyle = {
+    return {
       cursor: (isWatcher || revealed) ? 'not-allowed' : 'pointer',
-      opacity: (isWatcher || revealed) ? 0.6 : 1
+      opacity: (isWatcher || revealed && selectedCard !== card) ? 0.6 : 1
     };
-
-    if (selectedCard === card) {
-      return {
-        ...baseStyle,
-        transform: 'translateY(-4px) scale(1.05)',
-        boxShadow: '0 8px 20px rgba(102, 126, 234, 0.4)',
-        borderColor: '#667eea',
-        backgroundColor: '#f0f4ff',
-        fontWeight: 'bold',
-        fontSize: '20px'
-      };
-    }
-
-    return baseStyle;
   };
 
   const handleCardClick = (card) => {

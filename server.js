@@ -27,19 +27,19 @@ const games = new Map();
 const CARD_DECKS = {
   fibonacci: {
     name: 'Fibonacci',
-    cards: ['0', '1', '2', '3', '5', '8', '13', '?', '!', '☕']
+    cards: ['0', '1', '2', '3', '5', '8', '13', '21', '34', '55', '∞', '?', '☕']
   },
   tshirt: {
     name: 'T-Shirt Sizing',
-    cards: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?', '!', '☕']
+    cards: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?', '☕']
   },
   powersOf2: {
     name: 'Powers of 2',
-    cards: ['0', '1', '2', '4', '8', '16', '32', '?', '!', '☕']
+    cards: ['0', '1', '2', '4', '8', '16', '32', '?', '☕']
   },
   linear: {
     name: 'Linear (1-10)',
-    cards: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '?', '!', '☕']
+    cards: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '?', '☕']
   }
 };
 
@@ -150,7 +150,7 @@ io.on('connection', (socket) => {
   socket.on('join-game', (data) => {
     const game = games.get(data.gameId);
     if (!game) {
-      socket.emit('error', { message: 'Game not found' });
+      socket.emit('error', { message: 'Game not found.' });
       return;
     }
 
@@ -238,6 +238,24 @@ io.on('connection', (socket) => {
     io.to(data.gameId).emit('role-toggled', game.getGameState());
   });
 
+  socket.on('change-name', (data) => {
+    const game = games.get(data.gameId);
+    if (!game) return;
+
+    const player = game.players.get(socket.id);
+    if (!player) return;
+
+    // Check if name is valid
+    const trimmedName = data.newName.trim();
+    if (!trimmedName || trimmedName.length > 50) return;
+
+    // Update player name
+    player.name = trimmedName;
+
+    // Notify all players in the game
+    io.to(data.gameId).emit('name-changed', game.getGameState());
+  });
+
   socket.on('leave-game', (data) => {
     const game = games.get(data.gameId);
     if (!game) return;
@@ -291,7 +309,7 @@ app.get('/api/version', (req, res) => {
 app.get('/api/game/:gameId', (req, res) => {
   const game = games.get(req.params.gameId);
   if (!game) {
-    return res.status(404).json({ error: 'Game not found' });
+    return res.status(404).json({ error: 'Game not found.' });
   }
   res.json(game.getGameState());
 });

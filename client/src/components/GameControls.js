@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CustomDeckEditor from './CustomDeckEditor';
 
-const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChange, onToggleRole, socket }) => {
+const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChange, socket }) => {
   const [availableDecks, setAvailableDecks] = useState({});
   const [showCustomDeckEditor, setShowCustomDeckEditor] = useState(false);
   const [isEditingCustom, setIsEditingCustom] = useState(false);
@@ -38,12 +38,6 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
           Start New Round
         </button>
 
-        <button
-          onClick={onToggleRole}
-          className={`btn ${isWatcher ? 'btn-secondary' : 'btn-warning'}`}
-        >
-          {isWatcher ? 'Switch to Player' : 'Switch to Watcher'}
-        </button>
       </div>
 
       {isWatcher && (
@@ -70,7 +64,7 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
               <button
                 key={key}
                 onClick={() => onDeckChange(key)}
-                className={`btn ${game.deckType === key ? 'btn-success' : 'btn-secondary'}`}
+                className={`btn ${game.deckType === key ? 'btn-success' : 'btn-primary'}`}
                 disabled={game.deckType === key}
               >
                 {deck.name}
@@ -80,7 +74,7 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
             {game.customDeck && (
               <button
                 onClick={() => onDeckChange('custom')}
-                className={`btn ${game.deckType === 'custom' ? 'btn-success' : 'btn-secondary'}`}
+                className={`btn ${game.deckType === 'custom' ? 'btn-success' : 'btn-primary'}`}
                 disabled={game.deckType === 'custom'}
               >
                 {game.customDeck.name}
@@ -114,14 +108,7 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
         </div>
       )}
 
-      <div className="mt-3">
-        <h4>Game Status</h4>
-        <div className="flex justify-between">
-          <span>Deck: <strong>{game.deck.name}</strong></span>
-          <span>Players: <strong>{game.players.length}</strong></span>
-          <span>Status: <strong>{game.revealed ? 'Votes Revealed' : 'Voting'}</strong></span>
-        </div>
-      </div>
+
 
       {showCustomDeckEditor && (
         <CustomDeckEditor

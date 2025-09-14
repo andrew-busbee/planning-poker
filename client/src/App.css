@@ -37,7 +37,7 @@
   background: white;
   border: 2px solid #e1e5e9;
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px;
   margin: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -50,7 +50,7 @@
   user-select: none;
 }
 
-.poker-card:hover {
+.poker-card:hover:not(.selected) {
   border-color: #667eea;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
@@ -59,8 +59,10 @@
 .poker-card.selected {
   border-color: #667eea;
   background: #f0f4ff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  font-weight: bold;
+  font-size: 20px;
 }
 
 .poker-card.voted {
@@ -77,10 +79,11 @@
 .card-selection-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 12px;
+  gap: 2px;
   justify-items: center;
-  max-width: 600px;
   margin: 0 auto;
+  max-width: 100%;
+  justify-content: center;
 }
 
 .poker-card {
@@ -249,8 +252,8 @@
 
 @media (max-width: 768px) {
   .card-selection-grid {
-    grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 4px;
   }
   
   .poker-card {

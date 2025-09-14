@@ -101,6 +101,12 @@ code {
   transform: none;
 }
 
+.btn-success:disabled {
+  background: var(--success-color);
+  cursor: not-allowed;
+  transform: none;
+}
+
 .btn-secondary {
   background: var(--text-secondary);
 }
