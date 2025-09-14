@@ -5,7 +5,7 @@ const CardBack = () => {
     <div 
       className="card-back"
       style={{
-        backgroundImage: `url('/card_bg.jpg')`,
+        backgroundImage: `url('/card_bg.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

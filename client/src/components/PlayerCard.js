@@ -45,7 +45,7 @@ const PlayerCard = ({ player, vote, revealed, isCurrentPlayer }) => {
               </div>
             ) : (vote || '?')}
           </div>
-          {player.isWatcher && player.name.toLowerCase() === 'andrew' ? <AndrewWatcherCardBack /> : 
+          {player.isWatcher && player.name.toLowerCase() === 'yukon' ? <AndrewWatcherCardBack /> : 
            player.isWatcher ? <WatcherCardBack /> : <CardBack />}
         </div>
       </div>
