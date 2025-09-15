@@ -24,27 +24,28 @@ A real-time planning poker application for agile estimation, deployable via Dock
 - 🌓 **Light and dark modes** with theme toggle
 - 🐳 **Docker deployment** ready
 - ⚡ **Instant updates** when players join, vote, or reveal results
+- ⏳ **24-hour game persistence**: sessions stay active for 24 hours so teams can rejoin later without losing progress, with plans to consider extending persistence even longer
 
 ## Card Decks
 
 ### Fibonacci (Default)
-0, 1, 2, 3, 5, 8, 13, ?, !, ☕
+0, 1, 2, 3, 5, 8, 13, 21, 34, 55, ∞, ?, ☕
 
 ### T-Shirt Sizing
-XS, S, M, L, XL, XXL, ?, !, ☕
+XS, S, M, L, XL, XXL, ?, ☕
 
 ### Powers of 2
-0, 1, 2, 4, 8, 16, 32, ?, !, ☕
+0, 1, 2, 4, 8, 16, 32, ?, ☕
 
 ### Linear (1-10)
-1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ?, !, ☕
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ?, ☕
 
 ### Custom Deck
 Create your own custom deck to use during the game
 
 Special cards:
+- `∞` - Too complex to estimate
 - `?` - Need more information
-- `!` - Too complex to estimate
 - `☕` - Take a break
 
 ## Screenshots
@@ -79,8 +80,8 @@ docker run -d \
   -p 3001:3001 \
   -e PORT=3001 \
   --restart unless-stopped \
+  -v ./data:/app/data \
   andrewbusbee/planning-poker:latest
-
 ```
 
 ### Docker-compose
@@ -93,6 +94,8 @@ services:
     environment:
       - PORT=3001
     restart: unless-stopped
+    volumes:
+      - ./data:/app/data
 ```
 
 ## How to Use

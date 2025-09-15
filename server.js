@@ -4,6 +4,7 @@ const socketIo = require('socket.io');
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -37,6 +38,15 @@ const games = new Map();
 
 // Track active connections and their game associations
 const activeConnections = new Map(); // socketId -> { gameId, playerName, isWatcher, lastSeen }
+
+// File persistence configuration
+const DATA_DIR = path.join(__dirname, 'data');
+const GAMES_FILE = path.join(DATA_DIR, 'games.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
 
 // Card deck configurations
 const CARD_DECKS = {
@@ -155,7 +165,80 @@ class Game {
       canReveal: hasAnyVotes && !this.revealed
     };
   }
+
+  serialize() {
+    return {
+      id: this.id,
+      deckType: this.deckType,
+      deck: this.deck,
+      customDeck: this.customDeck,
+      players: Array.from(this.players.entries()),
+      votes: Array.from(this.votes.entries()),
+      revealed: this.revealed,
+      createdAt: this.createdAt,
+      lastActivity: this.lastActivity || this.createdAt
+    };
+  }
+
+  static deserialize(data) {
+    const game = new Game(data.id, data.deckType);
+    game.deck = data.deck;
+    game.customDeck = data.customDeck;
+    game.players = new Map(data.players);
+    game.votes = new Map(data.votes);
+    game.revealed = data.revealed;
+    game.createdAt = new Date(data.createdAt);
+    game.lastActivity = new Date(data.lastActivity);
+    return game;
+  }
 }
+
+// File persistence functions
+function loadGames() {
+  try {
+    if (fs.existsSync(GAMES_FILE)) {
+      const data = JSON.parse(fs.readFileSync(GAMES_FILE, 'utf8'));
+      data.forEach(gameData => {
+        const game = Game.deserialize(gameData);
+        games.set(game.id, game);
+      });
+      console.log(`[${new Date().toISOString()}] Loaded ${games.size} games from disk`);
+    }
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Error loading games:`, error);
+  }
+}
+
+function saveGames() {
+  try {
+    const gamesData = Array.from(games.values()).map(game => game.serialize());
+    fs.writeFileSync(GAMES_FILE, JSON.stringify(gamesData, null, 2));
+    console.log(`[${new Date().toISOString()}] Saved ${games.size} games to disk`);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Error saving games:`, error);
+  }
+}
+
+// Load games on startup
+loadGames();
+
+// Save games every 5 minutes
+setInterval(() => {
+  saveGames();
+}, 5 * 60 * 1000); // 5 minutes
+
+// Save games on server shutdown
+process.on('SIGINT', () => {
+  console.log(`[${new Date().toISOString()}] Server shutting down, saving games...`);
+  saveGames();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log(`[${new Date().toISOString()}] Server shutting down, saving games...`);
+  saveGames();
+  process.exit(0);
+});
 
 // Cleanup stale connections periodically
 setInterval(() => {
@@ -168,9 +251,10 @@ setInterval(() => {
       const game = games.get(connection.gameId);
       if (game) {
         game.removePlayer(socketId);
+        game.lastActivity = new Date(); // Update last activity
+        
         if (game.players.size === 0) {
-          games.delete(connection.gameId);
-          console.log(`Game ${connection.gameId} deleted (stale cleanup)`);
+          console.log(`[${new Date().toISOString()}] Game ${connection.gameId} is now empty, will expire in 24 hours (stale cleanup)`);
         } else {
           io.to(connection.gameId).emit('player-left', game.getGameState());
         }
@@ -179,6 +263,28 @@ setInterval(() => {
     }
   });
 }, 30000); // Check every 30 seconds
+
+// Cleanup expired games (24 hours) every hour
+setInterval(() => {
+  const now = new Date();
+  const expiredGames = [];
+  
+  games.forEach((game, gameId) => {
+    const timeSinceLastActivity = now - game.lastActivity;
+    if (timeSinceLastActivity > 24 * 60 * 60 * 1000) { // 24 hours
+      expiredGames.push(gameId);
+    }
+  });
+  
+  expiredGames.forEach(gameId => {
+    games.delete(gameId);
+    console.log(`[${new Date().toISOString()}] Game ${gameId} expired and deleted (24+ hours old)`);
+  });
+  
+  if (expiredGames.length > 0) {
+    saveGames(); // Save after cleanup
+  }
+}, 60 * 60 * 1000); // Check every hour
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
@@ -208,6 +314,7 @@ io.on('connection', (socket) => {
   socket.on('create-game', (data) => {
     const gameId = uuidv4().substring(0, 8);
     const game = new Game(gameId, data.deckType || 'fibonacci');
+    game.lastActivity = new Date();
     games.set(gameId, game);
     
     game.addPlayer(socket.id, data.playerName, data.isWatcher);
@@ -232,6 +339,9 @@ io.on('connection', (socket) => {
       socket.emit('error', { message: 'Game not found.' });
       return;
     }
+
+    // Update last activity when someone joins
+    game.lastActivity = new Date();
 
     // Check if player is already in the game (reconnection scenario)
     const existingPlayer = game.players.get(socket.id);
@@ -309,6 +419,7 @@ io.on('connection', (socket) => {
 
     const success = game.castVote(socket.id, data.card);
     if (success) {
+      game.lastActivity = new Date(); // Update last activity
       io.to(data.gameId).emit('vote-cast', game.getGameState());
     }
   });
@@ -318,6 +429,7 @@ io.on('connection', (socket) => {
     if (!game) return;
 
     game.revealVotes();
+    game.lastActivity = new Date(); // Update last activity
     io.to(data.gameId).emit('votes-revealed', game.getGameState());
   });
 
@@ -326,6 +438,7 @@ io.on('connection', (socket) => {
     if (!game) return;
 
     game.resetGame();
+    game.lastActivity = new Date(); // Update last activity
     io.to(data.gameId).emit('game-reset', game.getGameState());
   });
 
@@ -341,6 +454,7 @@ io.on('connection', (socket) => {
       game.deck = CARD_DECKS[data.deckType] || CARD_DECKS.fibonacci;
     }
     game.resetGame();
+    game.lastActivity = new Date(); // Update last activity
     
     io.to(data.gameId).emit('deck-changed', game.getGameState());
   });
@@ -350,6 +464,7 @@ io.on('connection', (socket) => {
     if (!game) return;
 
     game.createCustomDeck(data.name, data.cards);
+    game.lastActivity = new Date(); // Update last activity
     io.to(data.gameId).emit('custom-deck-created', game.getGameState());
   });
 
@@ -358,6 +473,7 @@ io.on('connection', (socket) => {
     if (!game) return;
 
     game.editCustomDeck(data.name, data.cards);
+    game.lastActivity = new Date(); // Update last activity
     io.to(data.gameId).emit('custom-deck-edited', game.getGameState());
   });
 
@@ -377,6 +493,7 @@ io.on('connection', (socket) => {
       player.hasVoted = false;
     }
 
+    game.lastActivity = new Date(); // Update last activity
     io.to(data.gameId).emit('role-toggled', game.getGameState());
   });
 
@@ -395,6 +512,7 @@ io.on('connection', (socket) => {
     player.name = trimmedName;
 
     // Notify all players in the game
+    game.lastActivity = new Date(); // Update last activity
     io.to(data.gameId).emit('name-changed', game.getGameState());
   });
 
@@ -406,10 +524,11 @@ io.on('connection', (socket) => {
     game.removePlayer(socket.id);
     socket.leave(data.gameId);
 
-    // If no players left, delete the game
+    // Update last activity instead of deleting immediately
+    game.lastActivity = new Date();
+
     if (game.players.size === 0) {
-      games.delete(data.gameId);
-      console.log(`Game ${data.gameId} deleted (no players)`);
+      console.log(`[${new Date().toISOString()}] Game ${data.gameId} is now empty, will expire in 24 hours`);
     } else {
       // Notify remaining players
       io.to(data.gameId).emit('player-left', game.getGameState());
@@ -431,10 +550,10 @@ io.on('connection', (socket) => {
     games.forEach((game, currentGameId) => {
       if (game.players.has(socket.id)) {
         game.removePlayer(socket.id);
+        game.lastActivity = new Date(); // Update last activity
         
         if (game.players.size === 0) {
-          games.delete(currentGameId);
-          console.log(`Game ${currentGameId} deleted (no players)`);
+          console.log(`[${new Date().toISOString()}] Game ${currentGameId} is now empty, will expire in 24 hours`);
         } else {
           io.to(currentGameId).emit('player-left', game.getGameState());
         }
