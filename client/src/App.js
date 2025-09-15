@@ -59,6 +59,20 @@ function App() {
       setIsConnected(false);
       setDisconnectReason(reason);
       setReconnecting(true); // Show reconnecting state immediately
+      
+      // Set a timeout to show disconnection message if reconnecting takes too long
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+      
+      const timeout = setTimeout(() => {
+        console.log(`[${new Date().toISOString()}] Reconnection timeout - showing disconnection message`);
+        setReconnecting(false);
+        setIsConnected(false);
+        setReconnectTimeout(null); // Clear the timeout reference
+      }, 10000); // 10 seconds timeout
+      
+      setReconnectTimeout(timeout);
     });
 
     socket.on('reconnect', () => {
@@ -88,7 +102,7 @@ function App() {
       console.log(`[${new Date().toISOString()}] Reconnecting... attempt ${attemptNumber}`);
       setReconnecting(true);
       
-      // Set a timeout to show disconnection message if reconnecting takes too long
+      // Clear any existing timeout and set a new one
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
       }
@@ -97,6 +111,7 @@ function App() {
         console.log(`[${new Date().toISOString()}] Reconnection timeout - showing disconnection message`);
         setReconnecting(false);
         setIsConnected(false);
+        setReconnectTimeout(null); // Clear the timeout reference
       }, 10000); // 10 seconds timeout
       
       setReconnectTimeout(timeout);
@@ -376,9 +391,26 @@ function App() {
               <button 
                 onClick={() => socket.connect()} 
                 className="btn btn-sm"
-                style={{ backgroundColor: '#28a745' }}
+                style={{ marginRight: '10px', backgroundColor: '#28a745' }}
               >
                 Test Reconnect
+              </button>
+              <button 
+                onClick={() => {
+                  console.log('Manually triggering reconnection timeout...');
+                  setReconnecting(true);
+                  const timeout = setTimeout(() => {
+                    console.log(`[${new Date().toISOString()}] Manual timeout - showing disconnection message`);
+                    setReconnecting(false);
+                    setIsConnected(false);
+                    setReconnectTimeout(null);
+                  }, 2000); // 2 seconds for testing
+                  setReconnectTimeout(timeout);
+                }}
+                className="btn btn-sm"
+                style={{ backgroundColor: '#ffc107', color: '#000' }}
+              >
+                Test Timeout (2s)
               </button>
             </div>
           )}
