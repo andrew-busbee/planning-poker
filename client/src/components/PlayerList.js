@@ -7,7 +7,7 @@ const PlayerList = ({ players, currentPlayerName, revealed }) => {
     }
     
     if (player.hasVoted) {
-      return revealed ? '✅ Voted' : '⏳ Voted';
+      return '✅ Voted';
     }
     
     return '⏳ Waiting...';

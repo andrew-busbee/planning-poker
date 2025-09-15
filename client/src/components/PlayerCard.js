@@ -29,7 +29,7 @@ const PlayerCard = ({ player, vote, revealed, isCurrentPlayer, onEditName }) => 
 
   const getStatusText = () => {
     if (player.isWatcher) return '👁️ Watcher';
-    if (player.hasVoted) return revealed ? '✅ Voted' : '⏳ Voted';
+    if (player.hasVoted) return '✅ Voted';
     return '⏳ Waiting...';
   };
 

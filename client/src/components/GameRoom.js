@@ -11,8 +11,6 @@ const GameRoom = ({ game, playerName, isWatcher, socket, currentSocketId, onTogg
   const [gameUrl, setGameUrl] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
   const [consensusPulse, setConsensusPulse] = useState(false);
-  const [timer, setTimer] = useState(0);
-  const [timerActive, setTimerActive] = useState(false);
   const [showNameEdit, setShowNameEdit] = useState(false);
   const [newName, setNewName] = useState(playerName);
 
@@ -108,11 +106,6 @@ const GameRoom = ({ game, playerName, isWatcher, socket, currentSocketId, onTogg
     });
   };
 
-  const formatTimer = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const handleNameChange = () => {
     const currentPlayer = game.players.find(p => p.id === currentSocketId);
@@ -187,35 +180,6 @@ const GameRoom = ({ game, playerName, isWatcher, socket, currentSocketId, onTogg
     }
   }, [game.revealed]);
 
-  // Timer logic
-  useEffect(() => {
-    // Start timer when second person joins (2+ players) and game is not revealed
-    if (game.players.length >= 2 && !game.revealed) {
-      setTimerActive(true);
-    } else {
-      setTimerActive(false);
-    }
-  }, [game.players.length, game.revealed]);
-
-  // Timer countdown effect
-  useEffect(() => {
-    let interval = null;
-    if (timerActive) {
-      interval = setInterval(() => {
-        setTimer(timer => timer + 1);
-      }, 1000);
-    } else if (!timerActive && timer !== 0) {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [timerActive, timer]);
-
-  // Reset timer when new round starts
-  useEffect(() => {
-    if (game.revealed === false && timer > 0) {
-      setTimer(0);
-    }
-  }, [game.revealed]);
 
   return (
     <div>
@@ -229,20 +193,6 @@ const GameRoom = ({ game, playerName, isWatcher, socket, currentSocketId, onTogg
       <div className="flex justify-between align-center mb-4">
         <div className="flex align-center gap-3">
           <h1>Planning Poker</h1>
-          {timer > 0 && (
-            <div style={{
-              background: 'var(--accent-color)',
-              color: 'white',
-              padding: '8px 16px',
-              borderRadius: '20px',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              minWidth: '60px',
-              textAlign: 'center'
-            }}>
-              ⏱️ {formatTimer(timer)}
-            </div>
-          )}
           <button onClick={copyGameUrl} className="btn btn-success">
             Share Game Link
           </button>

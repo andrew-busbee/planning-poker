@@ -11,7 +11,19 @@ const io = socketIo(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
-  }
+  },
+  pingTimeout: 90000,    // 90 seconds - longer timeout for mobile connections
+  pingInterval: 30000,   // 30 seconds - ping every 30 seconds
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+    skipMiddlewares: true,
+  },
+  // Mobile optimizations
+  transports: ['websocket', 'polling'], // Fallback to polling for mobile
+  upgrade: true, // Allow transport upgrades
+  rememberUpgrade: true, // Remember transport preference
+  serveClient: true, // Serve client files
+  allowEIO3: true // Backward compatibility
 });
 
 app.use(cors());
@@ -22,6 +34,9 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 
 // Store active games
 const games = new Map();
+
+// Track active connections and their game associations
+const activeConnections = new Map(); // socketId -> { gameId, playerName, isWatcher, lastSeen }
 
 // Card deck configurations
 const CARD_DECKS = {
@@ -57,12 +72,23 @@ class Game {
   }
 
   addPlayer(socketId, name, isWatcher = false) {
+    // Check if player already exists and update their info
+    const existingPlayer = this.players.get(socketId);
+    if (existingPlayer) {
+      existingPlayer.name = name || existingPlayer.name;
+      existingPlayer.isWatcher = isWatcher;
+      existingPlayer.lastSeen = new Date();
+      return existingPlayer;
+    }
+
     this.players.set(socketId, {
       id: socketId,
       name: name || `Player ${this.players.size + 1}`,
       isWatcher: isWatcher,
-      hasVoted: false
+      hasVoted: false,
+      lastSeen: new Date()
     });
+    return this.players.get(socketId);
   }
 
   removePlayer(socketId) {
@@ -131,9 +157,53 @@ class Game {
   }
 }
 
+// Cleanup stale connections periodically
+setInterval(() => {
+  const now = new Date();
+  const staleThreshold = 2 * 60 * 1000; // 2 minutes
+  
+  activeConnections.forEach((connection, socketId) => {
+    if (now - connection.lastSeen > staleThreshold) {
+      console.log(`Cleaning up stale connection: ${socketId}`);
+      const game = games.get(connection.gameId);
+      if (game) {
+        game.removePlayer(socketId);
+        if (game.players.size === 0) {
+          games.delete(connection.gameId);
+          console.log(`Game ${connection.gameId} deleted (stale cleanup)`);
+        } else {
+          io.to(connection.gameId).emit('player-left', game.getGameState());
+        }
+      }
+      activeConnections.delete(socketId);
+    }
+  });
+}, 30000); // Check every 30 seconds
+
 // Socket.io connection handling
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+  // Detect mobile connections
+  const userAgent = socket.handshake.headers['user-agent'] || '';
+  const isMobile = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  
+  console.log(`[${new Date().toISOString()}] User connected: ${socket.id}${isMobile ? ' (Mobile)' : ''}`);
+  
+  // Track connection with mobile info
+  activeConnections.set(socket.id, {
+    gameId: null,
+    playerName: null,
+    isWatcher: false,
+    lastSeen: new Date(),
+    isMobile: isMobile,
+    userAgent: userAgent
+  });
+  
+  // Apply mobile-specific settings
+  if (isMobile) {
+    // More lenient settings for mobile
+    socket.pingTimeout = 120000; // 2 minutes for mobile
+    socket.pingInterval = 45000; // 45 seconds for mobile
+  }
 
   socket.on('create-game', (data) => {
     const gameId = uuidv4().substring(0, 8);
@@ -143,8 +213,17 @@ io.on('connection', (socket) => {
     game.addPlayer(socket.id, data.playerName, data.isWatcher);
     socket.join(gameId);
     
+    // Update connection tracking
+    const connection = activeConnections.get(socket.id);
+    if (connection) {
+      connection.gameId = gameId;
+      connection.playerName = data.playerName;
+      connection.isWatcher = data.isWatcher;
+      connection.lastSeen = new Date();
+    }
+    
     socket.emit('game-created', { gameId, game: game.getGameState() });
-    console.log(`Game created: ${gameId}`);
+    console.log(`[${new Date().toISOString()}] Game created: ${gameId}`);
   });
 
   socket.on('join-game', (data) => {
@@ -154,16 +233,79 @@ io.on('connection', (socket) => {
       return;
     }
 
-    game.addPlayer(socket.id, data.playerName, data.isWatcher);
+    // Check if player is already in the game (reconnection scenario)
+    const existingPlayer = game.players.get(socket.id);
+    if (existingPlayer) {
+      // Update existing player info and last seen
+      existingPlayer.name = data.playerName || existingPlayer.name;
+      existingPlayer.isWatcher = data.isWatcher;
+      existingPlayer.lastSeen = new Date();
+      existingPlayer.hasVoted = false; // Reset vote status on reconnection
+    } else {
+      game.addPlayer(socket.id, data.playerName, data.isWatcher);
+    }
+    
     socket.join(data.gameId);
     
+    // Update connection tracking
+    const connection = activeConnections.get(socket.id);
+    if (connection) {
+      connection.gameId = data.gameId;
+      connection.playerName = data.playerName;
+      connection.isWatcher = data.isWatcher;
+      connection.lastSeen = new Date();
+    }
+    
     io.to(data.gameId).emit('player-joined', game.getGameState());
-    console.log(`Player joined game ${data.gameId}: ${data.playerName}`);
+    console.log(`[${new Date().toISOString()}] Player joined game ${data.gameId}: ${data.playerName}`);
+  });
+
+  // Heartbeat mechanism
+  socket.on('ping', () => {
+    const connection = activeConnections.get(socket.id);
+    if (connection) {
+      connection.lastSeen = new Date();
+    }
+    socket.emit('pong');
+  });
+
+  // Mobile-specific event handlers
+  socket.on('mobile-background', () => {
+    const connection = activeConnections.get(socket.id);
+    if (connection) {
+      connection.lastSeen = new Date();
+      const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
+      console.log(`[${new Date().toISOString()}] App backgrounded: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
+    }
+  });
+
+  socket.on('mobile-unload', () => {
+    const connection = activeConnections.get(socket.id);
+    if (connection) {
+      const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
+      console.log(`App unloading: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
+    }
+  });
+
+  // Handle mobile reconnection attempts
+  socket.on('mobile-reconnect', (data) => {
+    const connection = activeConnections.get(socket.id);
+    if (connection) {
+      connection.lastSeen = new Date();
+      const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
+      console.log(`Mobile reconnection attempt: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
+    }
   });
 
   socket.on('cast-vote', (data) => {
     const game = games.get(data.gameId);
     if (!game) return;
+
+    // Update last seen
+    const connection = activeConnections.get(socket.id);
+    if (connection) {
+      connection.lastSeen = new Date();
+    }
 
     const success = game.castVote(socket.id, data.card);
     if (success) {
@@ -274,19 +416,27 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+  socket.on('disconnect', (reason) => {
+    const connection = activeConnections.get(socket.id);
+    const playerInfo = connection ? 
+      `Player: ${connection.playerName}, Game: ${connection.gameId}${connection.isMobile ? ' (Mobile)' : ''}` : 
+      'Unknown player';
+    
+    console.log(`[${new Date().toISOString()}] User disconnected: ${socket.id}, Reason: ${reason}, ${playerInfo}`);
+    
+    // Clean up connection tracking
+    activeConnections.delete(socket.id);
     
     // Find and remove player from all games
-    games.forEach((game, gameId) => {
+    games.forEach((game, currentGameId) => {
       if (game.players.has(socket.id)) {
         game.removePlayer(socket.id);
         
         if (game.players.size === 0) {
-          games.delete(gameId);
-          console.log(`Game ${gameId} deleted (no players)`);
+          games.delete(currentGameId);
+          console.log(`Game ${currentGameId} deleted (no players)`);
         } else {
-          io.to(gameId).emit('player-left', game.getGameState());
+          io.to(currentGameId).emit('player-left', game.getGameState());
         }
       }
     });
@@ -321,5 +471,5 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`[${new Date().toISOString()}] Server running on port ${PORT}`);
 });

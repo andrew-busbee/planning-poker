@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-const GameSetup = ({ gameId, onCreateGame, onJoinGame }) => {
-  const [playerName, setPlayerName] = useState('');
+const GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {
+  const [playerName, setPlayerName] = useState(prefillName);
   const [isWatcher, setIsWatcher] = useState(false);
   const [deckType, setDeckType] = useState('fibonacci');
   const [availableDecks, setAvailableDecks] = useState({});
@@ -13,6 +13,13 @@ const GameSetup = ({ gameId, onCreateGame, onJoinGame }) => {
       .then(data => setAvailableDecks(data))
       .catch(error => console.error('Error fetching decks:', error));
   }, []);
+
+  // Update playerName when prefillName changes
+  useEffect(() => {
+    if (prefillName) {
+      setPlayerName(prefillName);
+    }
+  }, [prefillName]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
