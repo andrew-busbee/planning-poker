@@ -97,6 +97,9 @@ services:
     volumes:
       - ./data:/app/data
 ```
+The Docker image is published as a multi-arch build and works on:
+- x86_64 (Intel/AMD servers, PCs, cloud instances)
+- ARM64 (Apple Silicon, Raspberry Pi 4/5, ARM servers)
 
 ## How to Use
 
