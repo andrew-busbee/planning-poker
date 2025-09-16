@@ -78,31 +78,38 @@ The Docker image is published as a multi-arch build and works on:
 The easiest way to deploy the application is with Docker or Docker Compose.  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file has an optional healthcheck as well:
 
 ### Docker
+1. Create a persistent named volume (for app data):
+```bash
+docker volume create planning_poker_data
+```
+2. Run the container:
 ```bash
 docker run -d \
   --name planning-poker \
-  --user: 9999:9999 \
   -p 3001:3001 \
   -e PORT=3001 \
   --restart unless-stopped \
-  -v ./data:/app/data \
+  -v planning_poker_data:/app/data \
   andrewbusbee/planning-poker:latest
-
 ```
+3. Open http://localhost:3001 in your browser.
 
 ### Docker-compose
 ```yml
 services:
   planning-poker:
     image: andrewbusbee/planning-poker:latest
-    user: "9999:9999"  # nodejs user:group
     ports:
       - "3001:3001"
     environment:
       - PORT=3001
     restart: unless-stopped
     volumes:
-      - ./data:/app/data
+      - planning_poker_data:/app/data      
+      
+volumes:
+  planning_poker_data:      
+
 ```
 ## How to Use
 
