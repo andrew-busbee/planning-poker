@@ -222,10 +222,10 @@ function saveGames() {
 // Load games on startup
 loadGames();
 
-// Save games every 5 minutes
+// Save games every 1 minute
 setInterval(() => {
   saveGames();
-}, 5 * 60 * 1000); // 5 minutes
+}, 1 * 60 * 1000); // 1 minute
 
 // Performance monitoring every 5 minutes
 setInterval(() => {
