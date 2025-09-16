@@ -81,11 +81,13 @@ The easiest way to deploy the application is with Docker or Docker Compose.  The
 ```bash
 docker run -d \
   --name planning-poker \
+  --user: 9999:9999 \
   -p 3001:3001 \
   -e PORT=3001 \
   --restart unless-stopped \
   -v ./data:/app/data \
   andrewbusbee/planning-poker:latest
+
 ```
 
 ### Docker-compose
@@ -93,6 +95,7 @@ docker run -d \
 services:
   planning-poker:
     image: andrewbusbee/planning-poker:latest
+    user: "9999:9999"  # nodejs user:group
     ports:
       - "3001:3001"
     environment:

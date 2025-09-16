@@ -1,6 +1,7 @@
 services:
   planning-poker:
     image: andrewbusbee/planning-poker:latest
+    user: "9999:9999"  # nodejs user:group for writing game data to /app/data
     ports:
       - "3001:3001"
     environment:
