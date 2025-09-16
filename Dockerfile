@@ -38,11 +38,11 @@ COPY --from=build /app/client/build ./client/build
 # Copy server files
 COPY server.js ./
 
+# Create data directory as root first
+RUN mkdir -p /app/data
+
 # Use the existing node user from the base image (like Uptime Kuma does)
 USER node
-
-# Create data directory as node user
-RUN mkdir -p /app/data
 
 # Test that the node user can write to the data directory
 RUN touch /app/data/test-write && rm /app/data/test-write
