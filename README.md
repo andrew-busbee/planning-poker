@@ -75,7 +75,7 @@ The Docker image is published as a multi-arch build and works on:
 - x86_64 (Intel/AMD servers, PCs, cloud instances)
 - ARM64 (Apple Silicon, Raspberry Pi 4/5, ARM servers)
 
-The easiest way to deploy the application is with Docker or Docker Compose.  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck as well:
+The easiest way to deploy the application is with Docker or Docker Compose.  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck.
 
 ### Docker
 1. Create a folder to store your data.  Replace /path/to/data with your folder path.
@@ -101,7 +101,7 @@ docker run -d \
 mkdir -p /path/to/data
 sudo chown -R 1000:1000 /path/to/data
 ```
-2. Create a docker-compose.yml with the following content (replace /path/to/data with what you set above).  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck as well
+2. Create a docker-compose.yml with the following content (replace /path/to/data with what you set above).  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck.
 ```yml
 services:
   planning-poker:
