@@ -95,6 +95,7 @@ docker run -d \
 3. Open http://localhost:3001 in your browser.
 
 ### Docker-compose
+1. Create a docker-compose.yml with the following content:
 ```yml
 services:
   planning-poker:
@@ -109,8 +110,13 @@ services:
       
 volumes:
   planning_poker_data:      
-
 ```
+2. Start the container:
+```bash
+docker compose up -d
+```
+
+
 ## How to Use
 
 1. **Create a Game**: Enter your name and select a card deck type
