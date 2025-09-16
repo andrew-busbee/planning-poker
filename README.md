@@ -79,7 +79,7 @@ The Docker image is published as a multi-arch build and works on:
 The easiest way to deploy the application is with Docker Compose.  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck.
 
 ### Docker-compose (Recommended)
-1. Create a folder to store your data.  Replace /path/to/data with your folder path.
+1. Create a folder to store the games.  Replace /path/to/data with your folder path.
 ```bash
 mkdir -p /path/to/data
 sudo chown -R 1000:1000 /path/to/data
@@ -104,7 +104,7 @@ docker compose up -d
 ```
 
 ### Docker
-1. Create a folder to store your data.  Replace /path/to/data with your folder path.
+1. Create a folder to store the games.  Replace /path/to/data with your folder path.
 ```bash
 mkdir -p /path/to/data
 sudo chown -R 1000:1000 /path/to/data

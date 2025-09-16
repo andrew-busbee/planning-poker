@@ -115,7 +115,7 @@ const GameStats = ({ votes, players, deck }) => {
             .map(([card, count]) => (
               <div key={card} className="distribution-item">
                 <div className="card-value">{card === '⏸️' ? '⏸️' : card}</div>
-                <div className="vote-count">{count}</div>
+                <div className="vote-count">{count} {count === 1 ? 'vote' : 'votes'}</div>
                 <div className="vote-bar">
                   <div 
                     className="vote-bar-fill" 
