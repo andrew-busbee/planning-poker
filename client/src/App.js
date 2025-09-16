@@ -34,6 +34,7 @@ function App() {
   const [reconnecting, setReconnecting] = useState(false);
   const [disconnectReason, setDisconnectReason] = useState('');
   const [reconnectTimeout, setReconnectTimeout] = useState(null);
+  const [hasAttemptedConnection, setHasAttemptedConnection] = useState(false);
 
 
   useEffect(() => {
@@ -52,6 +53,7 @@ function App() {
       setReconnecting(false);
       setError('');
       setDisconnectReason('');
+      setHasAttemptedConnection(true);
     });
 
     socket.on('disconnect', (reason) => {
@@ -59,6 +61,7 @@ function App() {
       setIsConnected(false);
       setDisconnectReason(reason);
       setReconnecting(true); // Show reconnecting state immediately
+      setHasAttemptedConnection(true); // Mark that we've attempted connection
       
       // Set a timeout to show disconnection message if reconnecting takes too long
       if (reconnectTimeout) {
@@ -80,6 +83,7 @@ function App() {
       setReconnecting(false);
       setError('');
       setDisconnectReason('');
+      setHasAttemptedConnection(true);
       
       // Clear the reconnection timeout
       if (reconnectTimeout) {
@@ -101,6 +105,7 @@ function App() {
     socket.on('reconnecting', (attemptNumber) => {
       console.log(`[${new Date().toISOString()}] Reconnecting... attempt ${attemptNumber}`);
       setReconnecting(true);
+      setHasAttemptedConnection(true);
       
       // Clear any existing timeout and set a new one
       if (reconnectTimeout) {
@@ -120,12 +125,14 @@ function App() {
     socket.on('reconnect_error', (error) => {
       console.error(`[${new Date().toISOString()}] Reconnection error:`, error);
       setError('Connection lost. Attempting to reconnect...');
+      setHasAttemptedConnection(true);
     });
 
     socket.on('reconnect_failed', () => {
       console.error(`[${new Date().toISOString()}] Failed to reconnect`);
       setError('Failed to reconnect. Please refresh the page.');
       setReconnecting(false);
+      setHasAttemptedConnection(true);
       
       // Clear the reconnection timeout
       if (reconnectTimeout) {
@@ -143,6 +150,7 @@ function App() {
     // Handle transport errors specifically
     socket.on('connect_error', (error) => {
       console.error(`[${new Date().toISOString()}] Connection error:`, error);
+      setHasAttemptedConnection(true);
       if (error.type === 'TransportError') {
         console.log(`[${new Date().toISOString()}] Transport error detected, will retry...`);
         setError('Connection issue detected. Retrying...');
@@ -349,7 +357,7 @@ function App() {
         </div>
         
         {/* Connection Status Indicator - Above Footer */}
-        {!isConnected && (
+        {!isConnected && hasAttemptedConnection && (
           <div className="connection-status" style={{
             padding: '15px',
             textAlign: 'center',
@@ -449,7 +457,7 @@ function App() {
       </div>
       
       {/* Connection Status Indicator - Above Footer */}
-      {!isConnected && (
+      {!isConnected && hasAttemptedConnection && (
         <div className="connection-status" style={{
           padding: '15px',
           textAlign: 'center',
