@@ -41,6 +41,9 @@ COPY server.js ./
 # Create data directory as root first
 RUN mkdir -p /app/data
 
+# Set ownership of the data directory to node user
+RUN chown -R node:node /app/data
+
 # Use the existing node user from the base image (like Uptime Kuma does)
 USER node
 
