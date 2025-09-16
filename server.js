@@ -1,3 +1,5 @@
+console.log(`[${new Date().toISOString()}] Starting Planning Poker server...`);
+
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -6,8 +8,13 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 
+console.log(`[${new Date().toISOString()}] Dependencies loaded successfully`);
+
+console.log(`[${new Date().toISOString()}] Creating Express app and HTTP server...`);
 const app = express();
 const server = http.createServer(app);
+
+console.log(`[${new Date().toISOString()}] Configuring Socket.IO...`);
 const io = socketIo(server, {
   cors: {
     origin: "*",
@@ -26,12 +33,17 @@ const io = socketIo(server, {
   serveClient: true, // Serve client files
   allowEIO3: true // Backward compatibility
 });
+console.log(`[${new Date().toISOString()}] Socket.IO configured successfully`);
 
+console.log(`[${new Date().toISOString()}] Configuring Express middleware...`);
 app.use(cors());
 app.use(express.json());
 
 // Serve static files from the React app build directory
-app.use(express.static(path.join(__dirname, 'client/build')));
+const staticPath = path.join(__dirname, 'client/build');
+console.log(`[${new Date().toISOString()}] Serving static files from: ${staticPath}`);
+app.use(express.static(staticPath));
+console.log(`[${new Date().toISOString()}] Express middleware configured successfully`);
 
 // Store active games
 const games = new Map();
@@ -40,12 +52,49 @@ const games = new Map();
 const activeConnections = new Map(); // socketId -> { gameId, playerName, isWatcher, lastSeen }
 
 // File persistence configuration
+console.log(`[${new Date().toISOString()}] Setting up file persistence...`);
 const DATA_DIR = path.join(__dirname, 'data');
 const GAMES_FILE = path.join(DATA_DIR, 'games.json');
+console.log(`[${new Date().toISOString()}] Data directory: ${DATA_DIR}`);
+console.log(`[${new Date().toISOString()}] Games file: ${GAMES_FILE}`);
 
 // Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    console.log(`[${new Date().toISOString()}] Creating data directory: ${DATA_DIR}`);
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    console.log(`[${new Date().toISOString()}] ✅ Data directory created successfully`);
+  } else {
+    console.log(`[${new Date().toISOString()}] ✅ Data directory already exists`);
+  }
+  
+  // Check if we can write to the data directory
+  const testFile = path.join(DATA_DIR, '.write-test');
+  try {
+    fs.writeFileSync(testFile, 'test');
+    fs.unlinkSync(testFile);
+    console.log(`[${new Date().toISOString()}] ✅ Data directory is writable`);
+  } catch (writeError) {
+    console.error(`[${new Date().toISOString()}] ❌ ERROR: Cannot write to data directory:`, writeError.message);
+    console.error(`[${new Date().toISOString()}] ❌ This will cause game saving to fail!`);
+  }
+  
+  // Check if games file exists and is readable
+  if (fs.existsSync(GAMES_FILE)) {
+    try {
+      fs.accessSync(GAMES_FILE, fs.constants.R_OK);
+      console.log(`[${new Date().toISOString()}] ✅ Games file exists and is readable`);
+    } catch (readError) {
+      console.error(`[${new Date().toISOString()}] ❌ ERROR: Games file exists but is not readable:`, readError.message);
+    }
+  } else {
+    console.log(`[${new Date().toISOString()}] ℹ️  Games file does not exist yet (will be created on first save)`);
+  }
+  
+} catch (error) {
+  console.error(`[${new Date().toISOString()}] ❌ CRITICAL ERROR: Failed to set up data directory:`, error.message);
+  console.error(`[${new Date().toISOString()}] ❌ Game persistence will not work!`);
+  console.error(`[${new Date().toISOString()}] ❌ Error details:`, error);
 }
 
 // Card deck configurations
@@ -197,29 +246,62 @@ class Game {
 function loadGames() {
   try {
     if (fs.existsSync(GAMES_FILE)) {
+      console.log(`[${new Date().toISOString()}] Reading games file: ${GAMES_FILE}`);
       const data = JSON.parse(fs.readFileSync(GAMES_FILE, 'utf8'));
-      data.forEach(gameData => {
-        const game = Game.deserialize(gameData);
-        games.set(game.id, game);
+      console.log(`[${new Date().toISOString()}] Parsed ${data.length} games from file`);
+      
+      data.forEach((gameData, index) => {
+        try {
+          const game = Game.deserialize(gameData);
+          games.set(game.id, game);
+        } catch (gameError) {
+          console.error(`[${new Date().toISOString()}] ⚠️  WARNING: Failed to deserialize game at index ${index}:`, gameError.message);
+          console.error(`[${new Date().toISOString()}] ⚠️  Skipping corrupted game data`);
+        }
       });
-      console.log(`[${new Date().toISOString()}] Loaded ${games.size} games from disk`);
+      console.log(`[${new Date().toISOString()}] ✅ Successfully loaded ${games.size} games from disk`);
+    } else {
+      console.log(`[${new Date().toISOString()}] ℹ️  No games file found, starting with empty game list`);
     }
   } catch (error) {
-    console.error(`[${new Date().toISOString()}] Error loading games:`, error);
+    console.error(`[${new Date().toISOString()}] ❌ CRITICAL ERROR loading games:`, error.message);
+    console.error(`[${new Date().toISOString()}] ❌ Error details:`, error);
+    console.error(`[${new Date().toISOString()}] ❌ Continuing with empty game list`);
   }
 }
 
 function saveGames() {
   try {
+    console.log(`[${new Date().toISOString()}] Saving ${games.size} games to disk...`);
     const gamesData = Array.from(games.values()).map(game => game.serialize());
-    fs.writeFileSync(GAMES_FILE, JSON.stringify(gamesData, null, 2));
-    console.log(`[${new Date().toISOString()}] Saved ${games.size} games to disk`);
+    const jsonData = JSON.stringify(gamesData, null, 2);
+    
+    // Check if data directory is still writable
+    if (!fs.existsSync(DATA_DIR)) {
+      console.error(`[${new Date().toISOString()}] ❌ ERROR: Data directory no longer exists: ${DATA_DIR}`);
+      return;
+    }
+    
+    fs.writeFileSync(GAMES_FILE, jsonData);
+    console.log(`[${new Date().toISOString()}] ✅ Successfully saved ${games.size} games to disk`);
   } catch (error) {
-    console.error(`[${new Date().toISOString()}] Error saving games:`, error);
+    console.error(`[${new Date().toISOString()}] ❌ ERROR saving games:`, error.message);
+    console.error(`[${new Date().toISOString()}] ❌ Error code:`, error.code);
+    console.error(`[${new Date().toISOString()}] ❌ Error details:`, error);
+    
+    // Provide specific guidance based on error type
+    if (error.code === 'EACCES') {
+      console.error(`[${new Date().toISOString()}] ❌ Permission denied - check file/directory permissions`);
+    } else if (error.code === 'ENOSPC') {
+      console.error(`[${new Date().toISOString()}] ❌ No space left on device`);
+    } else if (error.code === 'ENOENT') {
+      console.error(`[${new Date().toISOString()}] ❌ Directory or file not found`);
+    }
   }
 }
 
 // Load games on startup
+console.log(`[${new Date().toISOString()}] Loading games from disk...`);
 loadGames();
 
 // Save games every 1 minute
@@ -300,6 +382,7 @@ setInterval(() => {
 }, 60 * 60 * 1000); // Check every hour
 
 // Socket.io connection handling
+console.log(`[${new Date().toISOString()}] Setting up Socket.IO event handlers...`);
 io.on('connection', (socket) => {
   // Detect mobile connections
   const userAgent = socket.handshake.headers['user-agent'] || '';
@@ -701,6 +784,13 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
+console.log(`[${new Date().toISOString()}] Starting server on port ${PORT}...`);
+
+server.on('error', (error) => {
+  console.error(`[${new Date().toISOString()}] ❌ Server error:`, error);
+});
+
 server.listen(PORT, () => {
-  console.log(`[${new Date().toISOString()}] Server running on port ${PORT}`);
+  console.log(`[${new Date().toISOString()}] ✅ Server successfully started and running on port ${PORT}`);
+  console.log(`[${new Date().toISOString()}] ✅ Planning Poker server is ready to accept connections`);
 });
