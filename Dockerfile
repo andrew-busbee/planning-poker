@@ -57,7 +57,7 @@ USER nodejs
 # Test that the nodejs user can write to the data directory
 RUN touch /app/data/test-write && rm /app/data/test-write
 
-# Expose port
+# Expose port 
 EXPOSE 3001
 
 # Health check
