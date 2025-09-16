@@ -99,7 +99,7 @@ docker run -d \
 1. Create a folder to store your data.  Replace /path/to/data with your folder path.
 ```bash
 mkdir -p /path/to/data
-sudo
+sudo chown -R 1000:1000 /path/to/data
 ```
 2. Create a docker-compose.yml with the following content (replace /path/to/data with what you set above)
 ```yml
