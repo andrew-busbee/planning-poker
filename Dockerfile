@@ -40,7 +40,7 @@ COPY server.js ./
 
 # Create non-root user
 RUN addgroup -g 1000 -S nodejs || addgroup -S nodejs
-RUN adduser -S nodejs -u 1000 -G nodejs
+RUN adduser -S nodejs -u 1000 -G nodejs || adduser -S nodejs -G nodejs
 
 # Change ownership of the app directory
 RUN chown -R nodejs:nodejs /app
