@@ -47,7 +47,13 @@ RUN adduser -S nodejs -u 1000 -G nodejs || adduser -S nodejs -G nodejs
 
 # Change ownership of the app directory
 RUN chown -R nodejs:nodejs /app
+
+# Ensure data directory has proper permissions
+RUN chmod 755 /app/data
+
+# Test that the nodejs user can write to the data directory
 USER nodejs
+RUN touch /app/data/test-write && rm /app/data/test-write
 
 # Expose port
 EXPOSE 3001
