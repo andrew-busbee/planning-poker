@@ -121,68 +121,12 @@ docker run -d \
 ```
 3. Open http://localhost:3001 in your browser.
 
-## How to Use
-
-1. **Create a Game**: Enter your name and select a card deck type
-2. **Share the URL**: Copy the generated game URL and share it with your team
-3. **Join the Game**: Team members can join using the shared URL
-4. **Cast Votes**: Select a card to cast your vote (hidden from others)
-5. **Reveal Results**: Any player can reveal all votes when ready
-6. **Start New Round**: Reset the game to start a new estimation round
-
-### Watcher Mode
-- Join as a watcher to observe without voting
-- Watchers can reveal votes and start new rounds
-- Perfect for stakeholders and managers
-
-## API Endpoints
-
-- `GET /api/decks` - Get available card deck configurations
-- `GET /api/game/:gameId` - Get game state
-- `GET /` - Serve the React application
-
-## WebSocket Events
-
-### Client to Server
-- `create-game` - Create a new game
-- `join-game` - Join an existing game
-- `cast-vote` - Cast a vote
-- `reveal-votes` - Reveal all votes
-- `reset-game` - Start a new round
-- `change-deck` - Change the card deck
-
-### Server to Client
-- `game-created` - Game created successfully
-- `player-joined` - Player joined the game
-- `vote-cast` - Vote was cast
-- `votes-revealed` - Votes have been revealed
-- `game-reset` - Game has been reset
-- `deck-changed` - Card deck has been changed
-- `player-left` - Player left the game
-
-## Configuration
-
 ### Environment Variables
 - `PORT` - Server port (default: 3001)
 
-### Docker Configuration
-The application includes:
-- Multi-stage Docker build for optimized production image
-- Health checks for container monitoring
-- Non-root user for security
-- Proper signal handling for graceful shutdowns
-
-## Deployment
-
-### Docker Compose
-The included `docker-compose.yml` provides:
-- Port mapping (3001:3001)
-- Health checks
-- Restart policy
-
-### Production Considerations
+## Production Deployment Considerations
 - Use a reverse proxy (nginx, Traefik) for SSL termination
-- Set up proper logging and monitoring
+- Consider setting up additional logging and monitoring
 
 ## Contributing
 
