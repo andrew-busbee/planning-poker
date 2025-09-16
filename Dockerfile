@@ -38,23 +38,13 @@ COPY --from=build /app/client/build ./client/build
 # Copy server files
 COPY server.js ./
 
-# Create non-root user first (must use ID 1000)
-RUN addgroup -g 1000 -S nodejs
-RUN adduser -S nodejs -u 1000 -G nodejs
+# Use the existing node user from the base image (like Uptime Kuma does)
+USER node
 
-# Create data directory and set proper ownership
-RUN mkdir -p /app/data && chown -R nodejs:nodejs /app/data
+# Create data directory as node user
+RUN mkdir -p /app/data
 
-# Change ownership of the entire app directory
-RUN chown -R nodejs:nodejs /app
-
-# Ensure data directory has proper permissions (read/write/execute for owner)
-RUN chmod 755 /app/data
-
-# Switch to nodejs user
-USER nodejs
-
-# Test that the nodejs user can write to the data directory
+# Test that the node user can write to the data directory
 RUN touch /app/data/test-write && rm /app/data/test-write
 
 # Expose port 
