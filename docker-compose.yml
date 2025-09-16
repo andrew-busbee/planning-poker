@@ -7,13 +7,11 @@ services:
       - PORT=3001
     restart: unless-stopped
     volumes:
-      - planning_poker_data:/app/data      
+      - /path/to/data:/app/data
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/decks', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-      
-volumes:
-  planning_poker_data:      
+
