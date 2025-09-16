@@ -227,6 +227,19 @@ setInterval(() => {
   saveGames();
 }, 5 * 60 * 1000); // 5 minutes
 
+// Performance monitoring every 5 minutes
+setInterval(() => {
+  const memUsage = process.memoryUsage();
+  const memUsageMB = {
+    rss: Math.round(memUsage.rss / 1024 / 1024),
+    heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
+    heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
+    external: Math.round(memUsage.external / 1024 / 1024)
+  };
+  
+  console.log(`[${new Date().toISOString()}] Performance stats: Active games: ${games.size}, Active connections: ${activeConnections.size}, Memory: ${memUsageMB.heapUsed}MB/${memUsageMB.heapTotal}MB heap, ${memUsageMB.rss}MB RSS`);
+}, 5 * 60 * 1000); // 5 minutes
+
 // Save games on server shutdown
 process.on('SIGINT', () => {
   console.log(`[${new Date().toISOString()}] Server shutting down, saving games...`);
@@ -247,7 +260,7 @@ setInterval(() => {
   
   activeConnections.forEach((connection, socketId) => {
     if (now - connection.lastSeen > staleThreshold) {
-      console.log(`Cleaning up stale connection: ${socketId}`);
+      console.log(`[${new Date().toISOString()}] Cleaning up stale connection: ${socketId}`);
       const game = games.get(connection.gameId);
       if (game) {
         game.removePlayer(socketId);
@@ -330,12 +343,13 @@ io.on('connection', (socket) => {
     }
     
     socket.emit('game-created', { gameId, game: game.getGameState() });
-    console.log(`[${new Date().toISOString()}] Game created: ${gameId}`);
+    console.log(`[${new Date().toISOString()}] Game created: ${gameId}, Total games: ${games.size}`);
   });
 
   socket.on('join-game', (data) => {
     const game = games.get(data.gameId);
     if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Join game failed: ${socket.id}, Game not found: ${data.gameId}`);
       socket.emit('error', { message: 'Game not found.' });
       return;
     }
@@ -367,7 +381,7 @@ io.on('connection', (socket) => {
     }
     
     io.to(data.gameId).emit('player-joined', game.getGameState());
-    console.log(`[${new Date().toISOString()}] Player joined game ${data.gameId}: ${data.playerName}`);
+    console.log(`[${new Date().toISOString()}] Player joined game ${data.gameId}: ${data.playerName}, Players in game: ${game.players.size}`);
   });
 
   // Heartbeat mechanism
@@ -377,6 +391,11 @@ io.on('connection', (socket) => {
       connection.lastSeen = new Date();
     }
     socket.emit('pong');
+  });
+
+  // Socket error handling
+  socket.on('error', (error) => {
+    console.log(`[${new Date().toISOString()}] [ERROR] Socket error: ${socket.id}, Error: ${error.message}`);
   });
 
   // Mobile-specific event handlers
@@ -393,7 +412,7 @@ io.on('connection', (socket) => {
     const connection = activeConnections.get(socket.id);
     if (connection) {
       const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
-      console.log(`App unloading: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
+      console.log(`[${new Date().toISOString()}] App unloading: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
     }
   });
 
@@ -403,13 +422,37 @@ io.on('connection', (socket) => {
     if (connection) {
       connection.lastSeen = new Date();
       const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
-      console.log(`Mobile reconnection attempt: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
+      console.log(`[${new Date().toISOString()}] Mobile reconnection attempt: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
+    }
+  });
+
+  // Handle mobile app resumed from background
+  socket.on('mobile-resume', () => {
+    const connection = activeConnections.get(socket.id);
+    if (connection) {
+      connection.lastSeen = new Date();
+      const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
+      console.log(`[${new Date().toISOString()}] App resumed: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
+    }
+  });
+
+  // Handle mobile ping/pong
+  socket.on('mobile-ping', () => {
+    const connection = activeConnections.get(socket.id);
+    if (connection) {
+      connection.lastSeen = new Date();
+      const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
+      console.log(`[${new Date().toISOString()}] Mobile ping: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
+      socket.emit('mobile-pong');
     }
   });
 
   socket.on('cast-vote', (data) => {
     const game = games.get(data.gameId);
-    if (!game) return;
+    if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Vote cast failed: ${socket.id}, Game not found: ${data.gameId}`);
+      return;
+    }
 
     // Update last seen
     const connection = activeConnections.get(socket.id);
@@ -420,31 +463,67 @@ io.on('connection', (socket) => {
     const success = game.castVote(socket.id, data.card);
     if (success) {
       game.lastActivity = new Date(); // Update last activity
+      const player = game.players.get(socket.id);
+      const playerName = player ? player.name : 'Unknown';
+      console.log(`[${new Date().toISOString()}] Vote cast: ${socket.id}, Player: ${playerName}, Card: ${data.card}, Game: ${data.gameId}`);
+      
+      // Check if all players have voted
+      const gameState = game.getGameState();
+      if (gameState.allVoted) {
+        console.log(`[${new Date().toISOString()}] All players voted: Game ${data.gameId}, ${game.votes.size} votes`);
+      }
+      
       io.to(data.gameId).emit('vote-cast', game.getGameState());
+    } else {
+      const player = game.players.get(socket.id);
+      const playerName = player ? player.name : 'Unknown';
+      console.log(`[${new Date().toISOString()}] [WARN] Invalid vote attempt: ${socket.id}, Player: ${playerName}, Card: ${data.card}, Game: ${data.gameId}`);
     }
   });
 
   socket.on('reveal-votes', (data) => {
     const game = games.get(data.gameId);
-    if (!game) return;
+    if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Reveal votes failed: ${socket.id}, Game not found: ${data.gameId}`);
+      return;
+    }
 
     game.revealVotes();
     game.lastActivity = new Date(); // Update last activity
+    console.log(`[${new Date().toISOString()}] Votes revealed: Game ${data.gameId}, ${game.votes.size} votes`);
+    
+    // Check for consensus (all votes are the same)
+    const votes = Array.from(game.votes.values());
+    if (votes.length > 1) {
+      const firstVote = votes[0];
+      const allSame = votes.every(vote => vote === firstVote);
+      if (allSame) {
+        console.log(`[${new Date().toISOString()}] Consensus reached: Game ${data.gameId}, Card: ${firstVote}, Players: ${votes.length}`);
+      }
+    }
+    
     io.to(data.gameId).emit('votes-revealed', game.getGameState());
   });
 
   socket.on('reset-game', (data) => {
     const game = games.get(data.gameId);
-    if (!game) return;
+    if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Game reset failed: ${socket.id}, Game not found: ${data.gameId}`);
+      return;
+    }
 
     game.resetGame();
     game.lastActivity = new Date(); // Update last activity
+    console.log(`[${new Date().toISOString()}] Game reset: Game ${data.gameId}`);
     io.to(data.gameId).emit('game-reset', game.getGameState());
   });
 
   socket.on('change-deck', (data) => {
     const game = games.get(data.gameId);
-    if (!game) return;
+    if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Deck change failed: ${socket.id}, Game not found: ${data.gameId}`);
+      return;
+    }
 
     if (data.deckType === 'custom' && game.customDeck) {
       game.deckType = 'custom';
@@ -455,34 +534,49 @@ io.on('connection', (socket) => {
     }
     game.resetGame();
     game.lastActivity = new Date(); // Update last activity
+    console.log(`[${new Date().toISOString()}] Deck changed: Game ${data.gameId}, New deck: ${data.deckType}`);
     
     io.to(data.gameId).emit('deck-changed', game.getGameState());
   });
 
   socket.on('create-custom-deck', (data) => {
     const game = games.get(data.gameId);
-    if (!game) return;
+    if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Custom deck creation failed: ${socket.id}, Game not found: ${data.gameId}`);
+      return;
+    }
 
     game.createCustomDeck(data.name, data.cards);
     game.lastActivity = new Date(); // Update last activity
+    console.log(`[${new Date().toISOString()}] Custom deck created: Game ${data.gameId}, Deck: ${data.name}, Cards: ${data.cards.length}`);
     io.to(data.gameId).emit('custom-deck-created', game.getGameState());
   });
 
   socket.on('edit-custom-deck', (data) => {
     const game = games.get(data.gameId);
-    if (!game) return;
+    if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Custom deck edit failed: ${socket.id}, Game not found: ${data.gameId}`);
+      return;
+    }
 
     game.editCustomDeck(data.name, data.cards);
     game.lastActivity = new Date(); // Update last activity
+    console.log(`[${new Date().toISOString()}] Custom deck edited: Game ${data.gameId}, Deck: ${data.name}, Cards: ${data.cards.length}`);
     io.to(data.gameId).emit('custom-deck-edited', game.getGameState());
   });
 
   socket.on('toggle-role', (data) => {
     const game = games.get(data.gameId);
-    if (!game) return;
+    if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Role toggle failed: ${socket.id}, Game not found: ${data.gameId}`);
+      return;
+    }
 
     const player = game.players.get(socket.id);
-    if (!player) return;
+    if (!player) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Role toggle failed: ${socket.id}, Player not found in game: ${data.gameId}`);
+      return;
+    }
 
     // Toggle role
     player.isWatcher = !player.isWatcher;
@@ -494,31 +588,46 @@ io.on('connection', (socket) => {
     }
 
     game.lastActivity = new Date(); // Update last activity
+    console.log(`[${new Date().toISOString()}] Role toggled: ${socket.id}, Player: ${player.name}, New role: ${player.isWatcher ? 'Watcher' : 'Player'}, Game: ${data.gameId}`);
     io.to(data.gameId).emit('role-toggled', game.getGameState());
   });
 
   socket.on('change-name', (data) => {
     const game = games.get(data.gameId);
-    if (!game) return;
+    if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Name change failed: ${socket.id}, Game not found: ${data.gameId}`);
+      return;
+    }
 
     const player = game.players.get(socket.id);
-    if (!player) return;
+    if (!player) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Name change failed: ${socket.id}, Player not found in game: ${data.gameId}`);
+      return;
+    }
 
     // Check if name is valid
     const trimmedName = data.newName.trim();
-    if (!trimmedName || trimmedName.length > 50) return;
+    if (!trimmedName || trimmedName.length > 50) {
+      console.log(`[${new Date().toISOString()}] [WARN] Invalid name change attempt: ${socket.id}, Name: ${data.newName}, Game: ${data.gameId}`);
+      return;
+    }
 
     // Update player name
+    const oldName = player.name;
     player.name = trimmedName;
 
     // Notify all players in the game
     game.lastActivity = new Date(); // Update last activity
+    console.log(`[${new Date().toISOString()}] Name changed: ${socket.id}, Old: ${oldName}, New: ${trimmedName}, Game: ${data.gameId}`);
     io.to(data.gameId).emit('name-changed', game.getGameState());
   });
 
   socket.on('leave-game', (data) => {
     const game = games.get(data.gameId);
-    if (!game) return;
+    if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Leave game failed: ${socket.id}, Game not found: ${data.gameId}`);
+      return;
+    }
 
     // Remove player from game
     game.removePlayer(socket.id);
@@ -531,6 +640,9 @@ io.on('connection', (socket) => {
       console.log(`[${new Date().toISOString()}] Game ${data.gameId} is now empty, will expire in 24 hours`);
     } else {
       // Notify remaining players
+      const player = game.players.get(socket.id);
+      const playerName = player ? player.name : 'Unknown';
+      console.log(`[${new Date().toISOString()}] Player left: ${socket.id}, Player: ${playerName}, Game: ${data.gameId}`);
       io.to(data.gameId).emit('player-left', game.getGameState());
     }
   });
