@@ -20,14 +20,13 @@ const io = socketIo(server, {
     origin: "*",
     methods: ["GET", "POST"]
   },
-  pingTimeout: 90000,    // 90 seconds - longer timeout for mobile connections
-  pingInterval: 30000,   // 30 seconds - ping every 30 seconds
+  pingTimeout: 120000,    // 2 minutes - increased for better stability
+  pingInterval: 25000,    // 25 seconds - slightly reduced frequency
   connectionStateRecovery: {
-    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+    maxDisconnectionDuration: 5 * 60 * 1000, // 5 minutes - increased recovery window
     skipMiddlewares: true,
   },
-  // Mobile optimizations
-  transports: ['websocket', 'polling'], // Fallback to polling for mobile
+  transports: ['websocket', 'polling'], // WebSocket with polling fallback
   upgrade: true, // Allow transport upgrades
   rememberUpgrade: true, // Remember transport preference
   serveClient: true, // Serve client files
@@ -50,6 +49,7 @@ const games = new Map();
 
 // Track active connections and their game associations
 const activeConnections = new Map(); // socketId -> { gameId, playerName, isWatcher, lastSeen }
+const connectionHealth = new Map(); // socketId -> { status, lastPing, latency }
 
 // File persistence configuration
 console.log(`[${new Date().toISOString()}] Setting up file persistence...`);
@@ -319,7 +319,17 @@ setInterval(() => {
     external: Math.round(memUsage.external / 1024 / 1024)
   };
   
-  console.log(`[${new Date().toISOString()}] Performance stats: Active games: ${games.size}, Active connections: ${activeConnections.size}, Memory: ${memUsageMB.heapUsed}MB/${memUsageMB.heapTotal}MB heap, ${memUsageMB.rss}MB RSS`);
+  // Count unhealthy connections
+  const now = Date.now();
+  let unhealthyConnections = 0;
+  connectionHealth.forEach((health, socketId) => {
+    if (now - health.lastPing > 120000) { // 2 minutes without ping
+      health.status = 'unhealthy';
+      unhealthyConnections++;
+    }
+  });
+  
+  console.log(`[${new Date().toISOString()}] Performance stats: Active games: ${games.size}, Active connections: ${activeConnections.size}, Unhealthy: ${unhealthyConnections}, Memory: ${memUsageMB.heapUsed}MB/${memUsageMB.heapTotal}MB heap, ${memUsageMB.rss}MB RSS`);
 }, 5 * 60 * 1000); // 5 minutes
 
 // Save games on server shutdown
@@ -338,7 +348,7 @@ process.on('SIGTERM', () => {
 // Cleanup stale connections periodically
 setInterval(() => {
   const now = new Date();
-  const staleThreshold = 2 * 60 * 1000; // 2 minutes
+  const staleThreshold = 5 * 60 * 1000; // 5 minutes - increased for better stability
   
   activeConnections.forEach((connection, socketId) => {
     if (now - connection.lastSeen > staleThreshold) {
@@ -357,7 +367,7 @@ setInterval(() => {
       activeConnections.delete(socketId);
     }
   });
-}, 30000); // Check every 30 seconds
+}, 60000); // Check every 60 seconds - reduced frequency
 
 // Cleanup expired games (24 hours) every hour
 setInterval(() => {
@@ -384,28 +394,15 @@ setInterval(() => {
 // Socket.io connection handling
 console.log(`[${new Date().toISOString()}] Setting up Socket.IO event handlers...`);
 io.on('connection', (socket) => {
-  // Detect mobile connections
-  const userAgent = socket.handshake.headers['user-agent'] || '';
-  const isMobile = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  console.log(`[${new Date().toISOString()}] User connected: ${socket.id}`);
   
-  console.log(`[${new Date().toISOString()}] User connected: ${socket.id}${isMobile ? ' (Mobile)' : ''}`);
-  
-  // Track connection with mobile info
+  // Track connection
   activeConnections.set(socket.id, {
     gameId: null,
     playerName: null,
     isWatcher: false,
-    lastSeen: new Date(),
-    isMobile: isMobile,
-    userAgent: userAgent
+    lastSeen: new Date()
   });
-  
-  // Apply mobile-specific settings
-  if (isMobile) {
-    // More lenient settings for mobile
-    socket.pingTimeout = 120000; // 2 minutes for mobile
-    socket.pingInterval = 45000; // 45 seconds for mobile
-  }
 
   socket.on('create-game', (data) => {
     const gameId = uuidv4().substring(0, 8);
@@ -467,12 +464,20 @@ io.on('connection', (socket) => {
     console.log(`[${new Date().toISOString()}] Player joined game ${data.gameId}: ${data.playerName}, Players in game: ${game.players.size}`);
   });
 
-  // Heartbeat mechanism
+  // Heartbeat mechanism with health tracking
   socket.on('ping', () => {
     const connection = activeConnections.get(socket.id);
     if (connection) {
       connection.lastSeen = new Date();
     }
+    
+    // Track connection health
+    const now = Date.now();
+    const health = connectionHealth.get(socket.id) || { status: 'healthy', lastPing: now, latency: 0 };
+    health.lastPing = now;
+    health.status = 'healthy';
+    connectionHealth.set(socket.id, health);
+    
     socket.emit('pong');
   });
 
@@ -481,54 +486,6 @@ io.on('connection', (socket) => {
     console.log(`[${new Date().toISOString()}] [ERROR] Socket error: ${socket.id}, Error: ${error.message}`);
   });
 
-  // Mobile-specific event handlers
-  socket.on('mobile-background', () => {
-    const connection = activeConnections.get(socket.id);
-    if (connection) {
-      connection.lastSeen = new Date();
-      const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
-      console.log(`[${new Date().toISOString()}] App backgrounded: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
-    }
-  });
-
-  socket.on('mobile-unload', () => {
-    const connection = activeConnections.get(socket.id);
-    if (connection) {
-      const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
-      console.log(`[${new Date().toISOString()}] App unloading: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
-    }
-  });
-
-  // Handle mobile reconnection attempts
-  socket.on('mobile-reconnect', (data) => {
-    const connection = activeConnections.get(socket.id);
-    if (connection) {
-      connection.lastSeen = new Date();
-      const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
-      console.log(`[${new Date().toISOString()}] Mobile reconnection attempt: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
-    }
-  });
-
-  // Handle mobile app resumed from background
-  socket.on('mobile-resume', () => {
-    const connection = activeConnections.get(socket.id);
-    if (connection) {
-      connection.lastSeen = new Date();
-      const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
-      console.log(`[${new Date().toISOString()}] App resumed: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
-    }
-  });
-
-  // Handle mobile ping/pong
-  socket.on('mobile-ping', () => {
-    const connection = activeConnections.get(socket.id);
-    if (connection) {
-      connection.lastSeen = new Date();
-      const playerInfo = connection.playerName ? `Player: ${connection.playerName}` : 'Unknown player';
-      console.log(`[${new Date().toISOString()}] Mobile ping: ${socket.id}, ${playerInfo}${connection.isMobile ? ' (Mobile)' : ''}`);
-      socket.emit('mobile-pong');
-    }
-  });
 
   socket.on('cast-vote', (data) => {
     const game = games.get(data.gameId);
@@ -733,13 +690,14 @@ io.on('connection', (socket) => {
   socket.on('disconnect', (reason) => {
     const connection = activeConnections.get(socket.id);
     const playerInfo = connection ? 
-      `Player: ${connection.playerName}, Game: ${connection.gameId}${connection.isMobile ? ' (Mobile)' : ''}` : 
+      `Player: ${connection.playerName}, Game: ${connection.gameId}` : 
       'Unknown player';
     
     console.log(`[${new Date().toISOString()}] User disconnected: ${socket.id}, Reason: ${reason}, ${playerInfo}`);
     
     // Clean up connection tracking
     activeConnections.delete(socket.id);
+    connectionHealth.delete(socket.id);
     
     // Find and remove player from all games
     games.forEach((game, currentGameId) => {

@@ -9,16 +9,14 @@ import './App.css';
 const socket = io({
   autoConnect: true,
   reconnection: true,
-  reconnectionDelay: 500, // Faster initial reconnection for mobile
-  reconnectionAttempts: Infinity, // Keep trying indefinitely for mobile
-  reconnectionDelayMax: 10000, // Max delay between reconnection attempts
-  timeout: 60000, // Much longer timeout for mobile
+  reconnectionDelay: 1000, // Initial reconnection delay
+  reconnectionAttempts: Infinity, // Keep trying indefinitely
+  reconnectionDelayMax: 15000, // Max delay between reconnection attempts
+  timeout: 120000, // Aligned with server timeout (2 minutes)
   forceNew: false,
-  // Mobile optimizations
-  transports: ['polling', 'websocket'], // Start with polling for mobile stability
+  transports: ['websocket', 'polling'], // WebSocket with polling fallback
   upgrade: true, // Allow transport upgrades
-  rememberUpgrade: false, // Don't remember upgrade for mobile (start fresh each time)
-  // Additional mobile settings
+  rememberUpgrade: true, // Remember successful upgrades for better performance
   randomizationFactor: 0.5, // Add randomness to prevent thundering herd
   maxReconnectionAttempts: Infinity
 });
@@ -58,6 +56,8 @@ function App() {
 
     socket.on('disconnect', (reason) => {
       console.log(`[${new Date().toISOString()}] Disconnected from server, reason:`, reason);
+      lastDisconnectTime = Date.now();
+      connectionQuality.reconnectionCount++;
       setIsConnected(false);
       setDisconnectReason(reason);
       setReconnecting(true); // Show reconnecting state immediately
@@ -73,13 +73,13 @@ function App() {
         setReconnecting(false);
         setIsConnected(false);
         setReconnectTimeout(null); // Clear the timeout reference
-      }, 10000); // 10 seconds timeout
+      }, 15000); // Increased to 15 seconds timeout
       
       setReconnectTimeout(timeout);
     });
 
-    socket.on('reconnect', () => {
-      console.log(`[${new Date().toISOString()}] Reconnected to server`);
+    socket.on('reconnect', (attemptNumber) => {
+      console.log(`[${new Date().toISOString()}] Reconnected to server after ${attemptNumber} attempts`);
       setReconnecting(false);
       setError('');
       setDisconnectReason('');
@@ -91,14 +91,20 @@ function App() {
         setReconnectTimeout(null);
       }
       
-      // For mobile users, try to rejoin game if we have current state
+      // Reset connection quality metrics on successful reconnection
+      connectionQuality.reconnectionCount = 0;
+      
+      // Try to rejoin game if we have current state
       if (gameId && playerName) {
-        console.log(`[${new Date().toISOString()}] Mobile reconnected, rejoining game...`);
-        socket.emit('join-game', {
-          gameId: gameId,
-          playerName: playerName,
-          isWatcher: isWatcher
-        });
+        console.log(`[${new Date().toISOString()}] Reconnected, rejoining game...`);
+        // Add a small delay to ensure connection is stable
+        setTimeout(() => {
+          socket.emit('join-game', {
+            gameId: gameId,
+            playerName: playerName,
+            isWatcher: isWatcher
+          });
+        }, 1000);
       }
     });
 
@@ -112,12 +118,15 @@ function App() {
         clearTimeout(reconnectTimeout);
       }
       
+      // Exponential backoff for timeout - longer timeout for later attempts
+      const timeoutDuration = Math.min(10000 + (attemptNumber * 5000), 30000);
+      
       const timeout = setTimeout(() => {
-        console.log(`[${new Date().toISOString()}] Reconnection timeout - showing disconnection message`);
+        console.log(`[${new Date().toISOString()}] Reconnection timeout after ${timeoutDuration}ms - showing disconnection message`);
         setReconnecting(false);
         setIsConnected(false);
         setReconnectTimeout(null); // Clear the timeout reference
-      }, 10000); // 10 seconds timeout
+      }, timeoutDuration);
       
       setReconnectTimeout(timeout);
     });
@@ -141,9 +150,9 @@ function App() {
       }
     });
 
-    // Mobile-specific reconnection handling
+    // Reconnection attempt handling
     socket.on('reconnect_attempt', (attemptNumber) => {
-      console.log(`[${new Date().toISOString()}] Reconnection attempt ${attemptNumber} for mobile`);
+      console.log(`[${new Date().toISOString()}] Reconnection attempt ${attemptNumber}`);
       setReconnecting(true);
     });
 
@@ -219,36 +228,61 @@ function App() {
       setError(error.message);
     });
 
-    // Heartbeat mechanism
-    const heartbeatInterval = setInterval(() => {
+    // Improved heartbeat mechanism with adaptive frequency
+    let heartbeatInterval;
+    let lastPongTime = Date.now();
+    let connectionQuality = { latency: 0, packetLoss: 0, reconnectionCount: 0 };
+
+    // Track pong responses for connection quality monitoring
+    socket.on('pong', () => {
+      const now = Date.now();
+      const latency = now - lastPongTime;
+      connectionQuality.latency = latency;
+      lastPongTime = now;
+    });
+    
+    const sendPing = () => {
       if (socket.connected) {
         socket.emit('ping');
       }
-    }, 20000); // Send ping every 20 seconds
+    };
+    
+    // Start with 30-second heartbeat
+    heartbeatInterval = setInterval(sendPing, 30000);
 
-    // Mobile-specific connection monitoring
-    const mobileConnectionCheck = setInterval(() => {
+    // Connection monitoring - less aggressive
+    let lastDisconnectTime = 0;
+    const connectionCheck = setInterval(() => {
       if (!socket.connected) {
-        // Check if we have current game state to rejoin
-        if (gameId && playerName) {
-          console.log(`[${new Date().toISOString()}] Mobile connection lost, attempting reconnection...`);
+        const timeSinceDisconnect = Date.now() - lastDisconnectTime;
+        // Only attempt reconnection if disconnected for more than 30 seconds
+        if (timeSinceDisconnect > 30000 && gameId && playerName) {
+          console.log(`[${new Date().toISOString()}] Connection lost for ${timeSinceDisconnect}ms, attempting reconnection...`);
           socket.connect();
         }
       }
-    }, 5000); // Check every 5 seconds for mobile
+    }, 15000); // Check every 15 seconds
 
-    // Mobile-specific event handlers
+    // Browser visibility change handlers for better connection management
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // App went to background - send heartbeat to keep connection alive
+        // App went to background - reduce ping frequency
         if (socket.connected) {
-          socket.emit('mobile-background');
+          // Reduce ping frequency when backgrounded
+          clearInterval(heartbeatInterval);
+          heartbeatInterval = setInterval(sendPing, 60000); // 1 minute when backgrounded
         }
       } else {
         // App came to foreground - check connection and reconnect if needed
         console.log(`[${new Date().toISOString()}] App came to foreground, checking connection...`);
+        
+        // Resume normal ping frequency
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(sendPing, 30000); // 30 seconds when foregrounded
+        
         if (!socket.connected) {
           console.log(`[${new Date().toISOString()}] Not connected, attempting reconnection...`);
+          lastDisconnectTime = Date.now();
           socket.connect();
         } else {
           // Already connected, try to rejoin immediately if we have game state
@@ -265,23 +299,47 @@ function App() {
     };
 
     const handleBeforeUnload = () => {
+      // Clean up on page unload
       if (socket.connected) {
-        socket.emit('mobile-unload');
+        socket.disconnect();
       }
     };
 
-    // Add mobile event listeners
+    // Network quality detection
+    const detectNetworkQuality = () => {
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (connection) {
+        console.log(`[${new Date().toISOString()}] Network type: ${connection.effectiveType}, downlink: ${connection.downlink}Mbps`);
+        
+        if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
+          // Use polling only for slow connections
+          console.log(`[${new Date().toISOString()}] Slow connection detected, switching to polling transport`);
+          socket.io.opts.transports = ['polling'];
+        } else if (connection.effectiveType === '3g') {
+          // Use websocket with polling fallback
+          socket.io.opts.transports = ['websocket', 'polling'];
+        } else {
+          // Use websocket first for fast connections
+          socket.io.opts.transports = ['websocket', 'polling'];
+        }
+      }
+    };
+
+    // Detect network quality on load
+    detectNetworkQuality();
+
+    // Add browser event listeners
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       clearInterval(heartbeatInterval);
-      clearInterval(mobileConnectionCheck);
+      clearInterval(connectionCheck);
       // Clear reconnection timeout
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
       }
-      // Remove mobile event listeners
+      // Remove browser event listeners
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       // Remove socket event listeners
