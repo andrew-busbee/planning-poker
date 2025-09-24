@@ -9,10 +9,10 @@ import './App.css';
 const socket = io({
   autoConnect: true,
   reconnection: true,
-  reconnectionDelay: 1000, // Initial reconnection delay
+  reconnectionDelay: 500, // Faster initial reconnection delay
   reconnectionAttempts: Infinity, // Keep trying indefinitely
-  reconnectionDelayMax: 15000, // Max delay between reconnection attempts
-  timeout: 120000, // Aligned with server timeout (2 minutes)
+  reconnectionDelayMax: 5000, // Shorter max delay between reconnection attempts
+  timeout: 60000, // Aligned with server timeout (1 minute)
   forceNew: false,
   transports: ['websocket', 'polling'], // WebSocket with polling fallback
   upgrade: true, // Allow transport upgrades
@@ -45,17 +45,20 @@ function App() {
 
     // Connection state management
     socket.on('connect', () => {
-      console.log(`[${new Date().toISOString()}] Connected to server`);
+      console.log(`[${new Date().toISOString()}] [CLIENT] Connected to server, Socket ID: ${socket.id}, Transport: ${socket.io.engine.transport.name}`);
       setCurrentSocketId(socket.id);
       setIsConnected(true);
       setReconnecting(false);
       setError('');
       setDisconnectReason('');
       setHasAttemptedConnection(true);
+      
+      // Log connection quality metrics
+      console.log(`[${new Date().toISOString()}] [CLIENT] Connection quality: Total pings: ${connectionQuality.totalPings}, Total pongs: ${connectionQuality.totalPongs}, Last latency: ${connectionQuality.lastLatency}ms, Reconnections: ${connectionQuality.reconnectionCount}`);
     });
 
     socket.on('disconnect', (reason) => {
-      console.log(`[${new Date().toISOString()}] Disconnected from server, reason:`, reason);
+      console.log(`[${new Date().toISOString()}] [CLIENT] Disconnected from server, reason: ${reason}, Socket ID: ${socket.id}, Transport: ${socket.io?.engine?.transport?.name || 'unknown'}`);
       lastDisconnectTime = Date.now();
       connectionQuality.reconnectionCount++;
       setIsConnected(false);
@@ -63,23 +66,28 @@ function App() {
       setReconnecting(true); // Show reconnecting state immediately
       setHasAttemptedConnection(true); // Mark that we've attempted connection
       
+      // Log problematic disconnects
+      if (reason === 'ping timeout' || reason === 'transport close' || reason === 'client namespace disconnect') {
+        console.log(`[${new Date().toISOString()}] [CLIENT] Problematic disconnect detected: ${reason}, Connection quality: Pings: ${connectionQuality.totalPings}, Pongs: ${connectionQuality.totalPongs}, Latency: ${connectionQuality.lastLatency}ms, Reconnections: ${connectionQuality.reconnectionCount}`);
+      }
+      
       // Set a timeout to show disconnection message if reconnecting takes too long
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
       }
       
       const timeout = setTimeout(() => {
-        console.log(`[${new Date().toISOString()}] Reconnection timeout - showing disconnection message`);
+        console.log(`[${new Date().toISOString()}] [CLIENT] Reconnection timeout - showing disconnection message`);
         setReconnecting(false);
         setIsConnected(false);
         setReconnectTimeout(null); // Clear the timeout reference
-      }, 15000); // Increased to 15 seconds timeout
+      }, 10000); // Reduced to 10 seconds timeout for faster feedback
       
       setReconnectTimeout(timeout);
     });
 
     socket.on('reconnect', (attemptNumber) => {
-      console.log(`[${new Date().toISOString()}] Reconnected to server after ${attemptNumber} attempts`);
+      console.log(`[${new Date().toISOString()}] [CLIENT] Reconnected to server after ${attemptNumber} attempts, New Socket ID: ${socket.id}, Transport: ${socket.io.engine.transport.name}`);
       setReconnecting(false);
       setError('');
       setDisconnectReason('');
@@ -91,12 +99,12 @@ function App() {
         setReconnectTimeout(null);
       }
       
-      // Reset connection quality metrics on successful reconnection
-      connectionQuality.reconnectionCount = 0;
+      // Log reconnection success
+      console.log(`[${new Date().toISOString()}] [CLIENT] Reconnection successful, Connection quality: Pings: ${connectionQuality.totalPings}, Pongs: ${connectionQuality.totalPongs}, Latency: ${connectionQuality.lastLatency}ms, Total reconnections: ${connectionQuality.reconnectionCount}`);
       
       // Try to rejoin game if we have current state
       if (gameId && playerName) {
-        console.log(`[${new Date().toISOString()}] Reconnected, rejoining game...`);
+        console.log(`[${new Date().toISOString()}] [CLIENT] Reconnected, rejoining game ${gameId} as ${playerName}...`);
         // Add a small delay to ensure connection is stable
         setTimeout(() => {
           socket.emit('join-game', {
@@ -104,7 +112,7 @@ function App() {
             playerName: playerName,
             isWatcher: isWatcher
           });
-        }, 1000);
+        }, 500); // Reduced delay for faster rejoin
       }
     });
 
@@ -231,24 +239,43 @@ function App() {
     // Improved heartbeat mechanism with adaptive frequency
     let heartbeatInterval;
     let lastPongTime = Date.now();
-    let connectionQuality = { latency: 0, packetLoss: 0, reconnectionCount: 0 };
+    let connectionQuality = { 
+      latency: 0, 
+      packetLoss: 0, 
+      reconnectionCount: 0,
+      totalPings: 0,
+      totalPongs: 0,
+      lastLatency: 0
+    };
 
     // Track pong responses for connection quality monitoring
     socket.on('pong', () => {
       const now = Date.now();
       const latency = now - lastPongTime;
       connectionQuality.latency = latency;
+      connectionQuality.lastLatency = latency;
+      connectionQuality.totalPongs++;
       lastPongTime = now;
+      
+      // Log high latency
+      if (latency > 2000) {
+        console.log(`[${new Date().toISOString()}] [CLIENT] High latency detected: ${latency}ms`);
+      }
     });
     
     const sendPing = () => {
       if (socket.connected) {
+        connectionQuality.totalPings++;
         socket.emit('ping');
+        // Only log ping every 10th ping to reduce noise
+        if (connectionQuality.totalPings % 10 === 0) {
+          console.log(`[${new Date().toISOString()}] [CLIENT] Sent ping, Total pings: ${connectionQuality.totalPings}, Total pongs: ${connectionQuality.totalPongs}, Last latency: ${connectionQuality.lastLatency}ms`);
+        }
       }
     };
     
-    // Start with 30-second heartbeat
-    heartbeatInterval = setInterval(sendPing, 30000);
+    // Start with 15-second heartbeat (aligned with server)
+    heartbeatInterval = setInterval(sendPing, 15000);
 
     // Connection monitoring - less aggressive
     let lastDisconnectTime = 0;

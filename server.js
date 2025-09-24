@@ -20,10 +20,10 @@ const io = socketIo(server, {
     origin: "*",
     methods: ["GET", "POST"]
   },
-  pingTimeout: 120000,    // 2 minutes - increased for better stability
-  pingInterval: 25000,    // 25 seconds - slightly reduced frequency
+  pingTimeout: 60000,     // 1 minute - faster detection of dead connections
+  pingInterval: 15000,    // 15 seconds - more frequent health checks
   connectionStateRecovery: {
-    maxDisconnectionDuration: 5 * 60 * 1000, // 5 minutes - increased recovery window
+    maxDisconnectionDuration: 10 * 60 * 1000, // 10 minutes - extended recovery window
     skipMiddlewares: true,
   },
   transports: ['websocket', 'polling'], // WebSocket with polling fallback
@@ -49,7 +49,14 @@ const games = new Map();
 
 // Track active connections and their game associations
 const activeConnections = new Map(); // socketId -> { gameId, playerName, isWatcher, lastSeen }
-const connectionHealth = new Map(); // socketId -> { status, lastPing, latency }
+const connectionHealth = new Map(); // socketId -> { status, lastPing, latency, disconnectCount, reconnectCount }
+const connectionMetrics = {
+  totalConnections: 0,
+  totalDisconnections: 0,
+  totalReconnections: 0,
+  disconnectReasons: new Map(),
+  startTime: new Date()
+};
 
 // File persistence configuration
 console.log(`[${new Date().toISOString()}] Setting up file persistence...`);
@@ -322,14 +329,28 @@ setInterval(() => {
   // Count unhealthy connections
   const now = Date.now();
   let unhealthyConnections = 0;
+  let highLatencyConnections = 0;
   connectionHealth.forEach((health, socketId) => {
-    if (now - health.lastPing > 120000) { // 2 minutes without ping
+    if (now - health.lastPing > 60000) { // 1 minute without ping
       health.status = 'unhealthy';
       unhealthyConnections++;
     }
+    if (health.latency > 1000) { // High latency connections
+      highLatencyConnections++;
+    }
   });
   
-  console.log(`[${new Date().toISOString()}] Performance stats: Active games: ${games.size}, Active connections: ${activeConnections.size}, Unhealthy: ${unhealthyConnections}, Memory: ${memUsageMB.heapUsed}MB/${memUsageMB.heapTotal}MB heap, ${memUsageMB.rss}MB RSS`);
+  // Calculate uptime
+  const uptime = Math.round((Date.now() - connectionMetrics.startTime.getTime()) / 1000 / 60);
+  
+  // Log disconnect reasons summary
+  const disconnectReasonsSummary = Array.from(connectionMetrics.disconnectReasons.entries())
+    .map(([reason, count]) => `${reason}: ${count}`)
+    .join(', ');
+  
+  console.log(`[${new Date().toISOString()}] [METRICS] Performance stats: Active games: ${games.size}, Active connections: ${activeConnections.size}, Unhealthy: ${unhealthyConnections}, High latency: ${highLatencyConnections}, Memory: ${memUsageMB.heapUsed}MB/${memUsageMB.heapTotal}MB heap, ${memUsageMB.rss}MB RSS, Uptime: ${uptime}min`);
+  console.log(`[${new Date().toISOString()}] [METRICS] Connection stats: Total connections: ${connectionMetrics.totalConnections}, Total disconnections: ${connectionMetrics.totalDisconnections}, Total reconnections: ${connectionMetrics.totalReconnections}`);
+  console.log(`[${new Date().toISOString()}] [METRICS] Disconnect reasons: ${disconnectReasonsSummary}`);
 }, 5 * 60 * 1000); // 5 minutes
 
 // Save games on server shutdown
@@ -348,26 +369,33 @@ process.on('SIGTERM', () => {
 // Cleanup stale connections periodically
 setInterval(() => {
   const now = new Date();
-  const staleThreshold = 5 * 60 * 1000; // 5 minutes - increased for better stability
+  const staleThreshold = 3 * 60 * 1000; // 3 minutes - faster cleanup for better stability
   
+  let staleCount = 0;
   activeConnections.forEach((connection, socketId) => {
     if (now - connection.lastSeen > staleThreshold) {
-      console.log(`[${new Date().toISOString()}] Cleaning up stale connection: ${socketId}`);
+      staleCount++;
+      console.log(`[${new Date().toISOString()}] [CLEANUP] Cleaning up stale connection: ${socketId}, Last seen: ${connection.lastSeen.toISOString()}, Player: ${connection.playerName}, Game: ${connection.gameId}`);
       const game = games.get(connection.gameId);
       if (game) {
         game.removePlayer(socketId);
         game.lastActivity = new Date(); // Update last activity
         
         if (game.players.size === 0) {
-          console.log(`[${new Date().toISOString()}] Game ${connection.gameId} is now empty, will expire in 24 hours (stale cleanup)`);
+          console.log(`[${new Date().toISOString()}] [CLEANUP] Game ${connection.gameId} is now empty, will expire in 24 hours (stale cleanup)`);
         } else {
           io.to(connection.gameId).emit('player-left', game.getGameState());
         }
       }
       activeConnections.delete(socketId);
+      connectionHealth.delete(socketId);
     }
   });
-}, 60000); // Check every 60 seconds - reduced frequency
+  
+  if (staleCount > 0) {
+    console.log(`[${new Date().toISOString()}] [CLEANUP] Removed ${staleCount} stale connections, Active connections: ${activeConnections.size}`);
+  }
+}, 30000); // Check every 30 seconds - more frequent cleanup
 
 // Cleanup expired games (24 hours) every hour
 setInterval(() => {
@@ -394,15 +422,30 @@ setInterval(() => {
 // Socket.io connection handling
 console.log(`[${new Date().toISOString()}] Setting up Socket.IO event handlers...`);
 io.on('connection', (socket) => {
-  console.log(`[${new Date().toISOString()}] User connected: ${socket.id}`);
+  connectionMetrics.totalConnections++;
+  console.log(`[${new Date().toISOString()}] [CONNECT] User connected: ${socket.id}, Total connections: ${connectionMetrics.totalConnections}, Active connections: ${activeConnections.size + 1}`);
   
   // Track connection
   activeConnections.set(socket.id, {
     gameId: null,
     playerName: null,
     isWatcher: false,
-    lastSeen: new Date()
+    lastSeen: new Date(),
+    connectedAt: new Date(),
+    transport: socket.conn.transport.name
   });
+  
+  // Initialize connection health tracking
+  connectionHealth.set(socket.id, {
+    status: 'healthy',
+    lastPing: Date.now(),
+    latency: 0,
+    disconnectCount: 0,
+    reconnectCount: 0,
+    transport: socket.conn.transport.name
+  });
+  
+  console.log(`[${new Date().toISOString()}] [CONNECT] Connection details: ${socket.id}, Transport: ${socket.conn.transport.name}, Remote address: ${socket.handshake.address}`);
 
   socket.on('create-game', (data) => {
     const gameId = uuidv4().substring(0, 8);
@@ -473,10 +516,22 @@ io.on('connection', (socket) => {
     
     // Track connection health
     const now = Date.now();
-    const health = connectionHealth.get(socket.id) || { status: 'healthy', lastPing: now, latency: 0 };
+    const health = connectionHealth.get(socket.id) || { status: 'healthy', lastPing: now, latency: 0, disconnectCount: 0, reconnectCount: 0 };
+    const previousPing = health.lastPing;
     health.lastPing = now;
     health.status = 'healthy';
+    
+    // Calculate latency if we have a previous ping
+    if (previousPing && previousPing !== now) {
+      health.latency = now - previousPing;
+    }
+    
     connectionHealth.set(socket.id, health);
+    
+    // Log high latency connections
+    if (health.latency > 2000) { // Log if latency > 2 seconds
+      console.log(`[${new Date().toISOString()}] [HEARTBEAT] High latency detected: ${socket.id}, Latency: ${health.latency}ms, Player: ${connection?.playerName || 'Unknown'}, Game: ${connection?.gameId || 'None'}`);
+    }
     
     socket.emit('pong');
   });
@@ -688,12 +743,28 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', (reason) => {
+    connectionMetrics.totalDisconnections++;
+    
+    // Track disconnect reasons
+    const currentCount = connectionMetrics.disconnectReasons.get(reason) || 0;
+    connectionMetrics.disconnectReasons.set(reason, currentCount + 1);
+    
     const connection = activeConnections.get(socket.id);
+    const health = connectionHealth.get(socket.id);
     const playerInfo = connection ? 
       `Player: ${connection.playerName}, Game: ${connection.gameId}` : 
       'Unknown player';
     
-    console.log(`[${new Date().toISOString()}] User disconnected: ${socket.id}, Reason: ${reason}, ${playerInfo}`);
+    // Calculate connection duration
+    const connectionDuration = connection ? 
+      Math.round((Date.now() - connection.connectedAt.getTime()) / 1000) : 0;
+    
+    console.log(`[${new Date().toISOString()}] [DISCONNECT] User disconnected: ${socket.id}, Reason: ${reason}, ${playerInfo}, Connection duration: ${connectionDuration}s, Transport: ${health?.transport || 'unknown'}`);
+    
+    // Log if this was a problematic disconnect
+    if (reason === 'ping timeout' || reason === 'transport close') {
+      console.log(`[${new Date().toISOString()}] [DISCONNECT] Problematic disconnect detected: ${socket.id}, Reason: ${reason}, Last ping: ${health?.lastPing ? new Date(health.lastPing).toISOString() : 'never'}, Latency: ${health?.latency || 0}ms`);
+    }
     
     // Clean up connection tracking
     activeConnections.delete(socket.id);
@@ -706,8 +777,9 @@ io.on('connection', (socket) => {
         game.lastActivity = new Date(); // Update last activity
         
         if (game.players.size === 0) {
-          console.log(`[${new Date().toISOString()}] Game ${currentGameId} is now empty, will expire in 24 hours`);
+          console.log(`[${new Date().toISOString()}] [DISCONNECT] Game ${currentGameId} is now empty, will expire in 24 hours`);
         } else {
+          console.log(`[${new Date().toISOString()}] [DISCONNECT] Notifying remaining players in game ${currentGameId}, Players remaining: ${game.players.size}`);
           io.to(currentGameId).emit('player-left', game.getGameState());
         }
       }
@@ -734,6 +806,64 @@ app.get('/api/game/:gameId', (req, res) => {
     return res.status(404).json({ error: 'Game not found.' });
   }
   res.json(game.getGameState());
+});
+
+// Connection health monitoring endpoint
+app.get('/api/health', (req, res) => {
+  const now = Date.now();
+  let healthyConnections = 0;
+  let unhealthyConnections = 0;
+  let highLatencyConnections = 0;
+  let totalLatency = 0;
+  let latencyCount = 0;
+  
+  connectionHealth.forEach((health, socketId) => {
+    if (now - health.lastPing > 60000) { // 1 minute without ping
+      unhealthyConnections++;
+    } else {
+      healthyConnections++;
+    }
+    
+    if (health.latency > 1000) { // High latency connections
+      highLatencyConnections++;
+    }
+    
+    if (health.latency > 0) {
+      totalLatency += health.latency;
+      latencyCount++;
+    }
+  });
+  
+  const avgLatency = latencyCount > 0 ? Math.round(totalLatency / latencyCount) : 0;
+  const uptime = Math.round((Date.now() - connectionMetrics.startTime.getTime()) / 1000);
+  
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: uptime,
+    connections: {
+      total: activeConnections.size,
+      healthy: healthyConnections,
+      unhealthy: unhealthyConnections,
+      highLatency: highLatencyConnections
+    },
+    games: {
+      total: games.size,
+      active: Array.from(games.values()).filter(game => game.players.size > 0).length
+    },
+    metrics: {
+      totalConnections: connectionMetrics.totalConnections,
+      totalDisconnections: connectionMetrics.totalDisconnections,
+      totalReconnections: connectionMetrics.totalReconnections,
+      avgLatency: avgLatency,
+      disconnectReasons: Object.fromEntries(connectionMetrics.disconnectReasons)
+    },
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+      rss: Math.round(process.memoryUsage().rss / 1024 / 1024)
+    }
+  });
 });
 
 // Serve React app for all other routes
