@@ -1,0 +1,36 @@
+{
+  "name": "planning-poker",
+  "version": "1.2.1",
+  "description": "A real-time planning poker application with multiple deck options",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "cd client && npm run build",
+    "install-client": "cd client && npm install",
+    "heroku-postbuild": "npm run install-client && npm run build"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.8.1",
+    "uuid": "^10.0.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "keywords": ["planning-poker", "scrum", "estimation", "agile"],
+  "author": "Andrew Busbee (https://github.com/andrew-busbee)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andrew-busbee/planning-poker.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "resolutions": {
+    "cross-spawn": "^7.0.5"
+  }
+}
