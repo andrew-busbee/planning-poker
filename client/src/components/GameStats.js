@@ -1,6 +1,6 @@
 import React from 'react';
 
-const GameStats = ({ votes, players, deck }) => {
+const GameStats = ({ votes, players, game }) => {
   const nonWatcherVotes = Object.entries(votes).filter(([playerId]) => {
     const player = players.find(p => p.id === playerId);
     return player && !player.isWatcher;
@@ -70,8 +70,9 @@ const GameStats = ({ votes, players, deck }) => {
   }
 
   // Determine which statistics to show based on deck type
-  const shouldShowAverage = deck.name !== 'T-Shirt Sizing';
-  const shouldShowNearestFibonacci = deck.name === 'Fibonacci';
+  const isCustomDeck = game.deckType === 'custom';
+  const shouldShowAverage = !isCustomDeck && game.deck.name !== 'T-Shirt Sizing';
+  const shouldShowNearestFibonacci = game.deck.name === 'Fibonacci';
 
   return (
     <div className="card game-stats-revealed">

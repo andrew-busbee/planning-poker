@@ -186,6 +186,11 @@ code {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
+.join-game-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
 .grid-3 {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }

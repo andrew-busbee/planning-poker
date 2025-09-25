@@ -39,9 +39,9 @@ const GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {
   };
 
   return (
-    <div className="grid grid-2">
+    <div className={gameId ? "join-game-container" : "grid grid-2"}>
       <div className="card">
-        <h2>{gameId ? 'Join a Game' : 'Create a New Game'}</h2>
+        <h2>{gameId ? 'Join the Game' : 'Create a New Game'}</h2>
         <form onSubmit={handleSubmit}>
           <div>
             <label htmlFor="playerName">Your Name:</label>
@@ -52,10 +52,10 @@ const GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               placeholder="Enter your name"
+              maxLength={25}
               required
             />
           </div>
-
 
           <div>
             <label>
@@ -67,6 +67,33 @@ const GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {
               Join as watcher (can reveal votes and reset game, but cannot vote)
             </label>
           </div>
+
+          {gameId && (
+            <div className="game-info-section" style={{ 
+              background: 'var(--bg-tertiary)', 
+              padding: '16px', 
+              borderRadius: '8px',
+              border: '1px solid var(--border-color)',
+              marginBottom: '16px'
+            }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>Game Information</h3>
+              <p style={{ margin: '0 0 8px 0' }}>You're about to join game:</p>
+              <div className="game-url" style={{ 
+                background: 'var(--bg-primary)', 
+                padding: '8px', 
+                borderRadius: '4px',
+                fontFamily: 'monospace',
+                fontSize: '14px',
+                wordBreak: 'break-all',
+                marginBottom: '8px'
+              }}>
+                {window.location.origin}?game={gameId}
+              </div>
+              <p className="text-muted" style={{ margin: '0', fontSize: '14px' }}>
+                Share this URL with other team members to invite them to the game.
+              </p>
+            </div>
+          )}
 
           {!gameId && (
             <div>
@@ -97,23 +124,10 @@ const GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {
           )}
 
           <button type="submit" className="btn">
-            {gameId ? 'Join a Game' : 'Create a Game'}
+            {gameId ? 'Join the Game' : 'Create a Game'}
           </button>
         </form>
       </div>
-
-      {gameId && (
-        <div className="card">
-          <h2>Game Information</h2>
-          <p>You're about to join game:</p>
-          <div className="game-url">
-            {window.location.origin}?game={gameId}
-          </div>
-          <p className="text-muted">
-            Share this URL with other team members to invite them to the game.
-          </p>
-        </div>
-      )}
 
       {!gameId && (
         <div className="card">

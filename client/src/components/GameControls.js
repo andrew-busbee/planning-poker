@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CustomDeckEditor from './CustomDeckEditor';
 
-const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChange }) => {
+const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChange, onToggleRole }) => {
   const [availableDecks, setAvailableDecks] = useState({});
   const [showCustomDeckEditor, setShowCustomDeckEditor] = useState(false);
   const [isEditingCustom, setIsEditingCustom] = useState(false);
@@ -21,23 +21,34 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
     <div className="card">
       <h3>Game Controls</h3>
       
-      <div className="flex flex-wrap gap-2 mb-3">
-        <button
-          onClick={onRevealVotes}
-          disabled={!canReveal}
-          className={`btn ${canReveal ? 'btn-success' : 'btn-secondary'}`}
-        >
-          {canReveal ? 'Reveal Votes' : 'Waiting for votes...'}
-        </button>
+      <div className="flex flex-wrap gap-2 mb-3" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="flex flex-wrap gap-2">
+          {!canReset && (
+            <button
+              onClick={onRevealVotes}
+              disabled={!canReveal}
+              className={`btn ${canReveal ? 'btn-success' : 'btn-secondary'}`}
+            >
+              {canReveal ? 'Reveal Votes' : 'Waiting for votes...'}
+            </button>
+          )}
+
+          {canReset && (
+            <button
+              onClick={onResetGame}
+              className="btn btn-warning"
+            >
+              Start New Round
+            </button>
+          )}
+        </div>
 
         <button
-          onClick={onResetGame}
-          disabled={!canReset}
-          className={`btn ${canReset ? 'btn-warning' : 'btn-secondary'}`}
+          onClick={onToggleRole}
+          className="btn btn-warning"
         >
-          Start New Round
+          {isWatcher ? 'Switch to Player' : 'Switch to Watcher'}
         </button>
-
       </div>
 
       {isWatcher && (

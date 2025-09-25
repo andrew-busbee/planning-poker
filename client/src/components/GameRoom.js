@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGameContext } from './GameProvider';
 import { useGameStore } from '../stores/gameStore';
 import CardDeck from './CardDeck';
@@ -13,6 +13,7 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
   const gameStore = useGameStore();
   
   const [gameUrl, setGameUrl] = useState('');
+  const prevRevealedRef = useRef(game.revealed);
 
   useEffect(() => {
     // Update URL with game ID
@@ -30,6 +31,20 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
       gameStore.setSelectedCard(null);
     }
   }, [game.players, socketId, isWatcher, gameStore]);
+
+  // Reset selected card when game is reset (revealed goes from true to false)
+  useEffect(() => {
+    const prevRevealed = prevRevealedRef.current;
+    const currentRevealed = game.revealed;
+    
+    // Only clear selected card when transitioning from revealed to not revealed (actual reset)
+    if (prevRevealed === true && currentRevealed === false) {
+      gameStore.setSelectedCard(null);
+    }
+    
+    // Update the ref for next comparison
+    prevRevealedRef.current = currentRevealed;
+  }, [game.revealed, gameStore]);
 
   const handleCardSelect = (card) => {
     if (isWatcher || game.revealed) return;
@@ -108,13 +123,6 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
     }
   }, [isConsensus, game.revealed, gameStore]);
 
-  // Reset selected card when game is reset
-  useEffect(() => {
-    // When game is reset (revealed goes from true to false), clear selection
-    if (game.revealed === false) {
-      gameStore.setSelectedCard(null);
-    }
-  }, [game.revealed, gameStore]);
 
   return (
     <div>
@@ -126,17 +134,9 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
       <ThemeToggle />
       
       <div className="flex justify-between align-center mb-4">
-        <div className="flex align-center gap-3">
-          <h1>Planning Poker</h1>
-          <button onClick={copyGameUrl} className="btn btn-success">
-            Share Game Link
-          </button>
-        </div>
-        <button
-          onClick={handleToggleRole}
-          className="btn btn-warning"
-        >
-          {currentIsWatcher ? 'Switch to Player' : 'Switch to Watcher'}
+        <h1>Planning Poker</h1>
+        <button onClick={copyGameUrl} className="btn btn-success">
+          Share Link
         </button>
       </div>
 
@@ -187,7 +187,7 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
         <GameStats
           votes={game.votes}
           players={game.players}
-          deck={game.deck}
+          game={game}
         />
       )}
 
@@ -198,6 +198,7 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
         onRevealVotes={handleRevealVotes}
         onResetGame={handleResetGame}
         onDeckChange={handleDeckChange}
+        onToggleRole={handleToggleRole}
       />
 
     </div>
