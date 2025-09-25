@@ -32,7 +32,7 @@ const Footer = () => {
               rel="noopener noreferrer"
               className="version-link"
             >
-              v1.2.2 Pre-release
+              v1.2.2
             </a>
           </div>
         </div>

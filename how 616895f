@@ -1,0 +1,127 @@
+[33mcommit 616895fafdf76a95e5f6ae8b9ded6362cdc3bc80[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Andrew Busbee <21376025+andrew-busbee@users.noreply.github.com>
+Date:   Thu Sep 25 17:40:13 2025 -0500
+
+    UI and game functionality fixes
+
+[1mdiff --git a/client/src/components/CustomDeckEditor.js b/client/src/components/CustomDeckEditor.js[m
+[1mindex 95773bb..b93bd93 100644[m
+[1m--- a/client/src/components/CustomDeckEditor.js[m
+[1m+++ b/client/src/components/CustomDeckEditor.js[m
+[36m@@ -14,7 +14,9 @@[m [mconst CustomDeckEditor = ({ game, onClose, isEditing = false }) => {[m
+   }, [isEditing, game.customDeck]);[m
+ [m
+   const addCardSlot = () => {[m
+[31m-    setCards([...cards, '']);[m
+[32m+[m[32m    if (cards.length < 15) {[m[41m[m
+[32m+[m[32m      setCards([...cards, '']);[m[41m[m
+[32m+[m[32m    }[m[41m[m
+   };[m
+ [m
+   const removeCardSlot = (index) => {[m
+[36m@@ -35,11 +37,19 @@[m [mconst CustomDeckEditor = ({ game, onClose, isEditing = false }) => {[m
+     [m
+     if (!deckName.trim()) {[m
+       newErrors.deckName = 'Deck name is required';[m
+[32m+[m[32m    } else if (deckName.length > 15) {[m[41m[m
+[32m+[m[32m      newErrors.deckName = 'Deck name must be 15 characters or less';[m[41m[m
+     }[m
+     [m
+     const validCards = cards.filter(card => card.trim() !== '');[m
+     if (validCards.length < 2) {[m
+       newErrors.cards = 'At least 2 cards are required';[m
+[32m+[m[32m    } else {[m[41m[m
+[32m+[m[32m      // Check if any card exceeds 15 characters[m[41m[m
+[32m+[m[32m      const invalidCards = validCards.filter(card => card.length > 15);[m[41m[m
+[32m+[m[32m      if (invalidCards.length > 0) {[m[41m[m
+[32m+[m[32m        newErrors.cards = 'Each card must be 15 characters or less';[m[41m[m
+[32m+[m[32m      }[m[41m[m
+     }[m
+     [m
+     setErrors(newErrors);[m
+[36m@@ -79,7 +89,7 @@[m [mconst CustomDeckEditor = ({ game, onClose, isEditing = false }) => {[m
+     <div className="modal-overlay" onClick={handleCancel}>[m
+       <div className="modal-content" onClick={(e) => e.stopPropagation()}>[m
+         <div className="modal-header">[m
+[31m-          <h3>{isEditing ? 'Edit Custom Deck' : 'Create Custom Deck'}</h3>[m
+[32m+[m[32m          <h3>{isEditing ? 'Edit Custom Deck (15 Cards Max)' : 'Create Custom Deck (15 Cards Max)'}</h3>[m[41m[m
+           <button className="modal-close" onClick={handleCancel}>×</button>[m
+         </div>[m
+         [m
+[36m@@ -93,6 +103,7 @@[m [mconst CustomDeckEditor = ({ game, onClose, isEditing = false }) => {[m
+               value={deckName}[m
+               onChange={(e) => setDeckName(e.target.value)}[m
+               placeholder="Enter deck name"[m
+[32m+[m[32m              maxLength={15}[m[41m[m
+               required[m
+             />[m
+             {errors.deckName && <span className="error-text">{errors.deckName}</span>}[m
+[36m@@ -110,6 +121,7 @@[m [mconst CustomDeckEditor = ({ game, onClose, isEditing = false }) => {[m
+                     value={card}[m
+                     onChange={(e) => updateCard(index, e.target.value)}[m
+                     placeholder={`Card ${index + 1}`}[m
+[32m+[m[32m                    maxLength={15}[m[41m[m
+                   />[m
+                   {cards.length > 1 && ([m
+                     <button[m
+[36m@@ -126,8 +138,9 @@[m [mconst CustomDeckEditor = ({ game, onClose, isEditing = false }) => {[m
+                 type="button"[m
+                 className="btn btn-secondary btn-sm"[m
+                 onClick={addCardSlot}[m
+[32m+[m[32m                disabled={cards.length >= 15}[m[41m[m
+               >[m
+[31m-                Add Card[m
+[32m+[m[32m                Add Card {cards.length >= 15 ? '(Max 15 cards)' : ''}[m[41m[m
+               </button>[m
+             </div>[m
+           </div>[m
+[1mdiff --git a/client/src/components/GameRoom.js b/client/src/components/GameRoom.js[m
+[1mindex 4ae92a2..b92fb4c 100644[m
+[1m--- a/client/src/components/GameRoom.js[m
+[1m+++ b/client/src/components/GameRoom.js[m
+[36m@@ -47,7 +47,7 @@[m [mconst GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {[m
+   }, [game.revealed, gameStore]);[m
+ [m
+   const handleCardSelect = (card) => {[m
+[31m-    if (isWatcher || game.revealed) return;[m
+[32m+[m[32m    if (currentIsWatcher || game.revealed) return;[m
+     [m
+     gameStore.setSelectedCard(card);[m
+     gameStore.castVote(game.id, card);[m
+[1mdiff --git a/client/src/components/GameSetup.js b/client/src/components/GameSetup.js[m
+[1mindex 4a7a799..af86fde 100644[m
+[1m--- a/client/src/components/GameSetup.js[m
+[1m+++ b/client/src/components/GameSetup.js[m
+[36m@@ -57,12 +57,13 @@[m [mconst GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {[m
+             />[m
+           </div>[m
+ [m
+[31m-          <div>[m
+[32m+[m[32m          <div style={{ marginBottom: '16px' }}>[m[41m[m
+             <label>[m
+               <input[m
+                 type="checkbox"[m
+                 checked={isWatcher}[m
+                 onChange={(e) => setIsWatcher(e.target.checked)}[m
+[32m+[m[32m                style={{ marginRight: '8px' }}[m[41m[m
+               />[m
+               Join as watcher (can reveal votes and reset game, but cannot vote)[m
+             </label>[m
+[36m@@ -76,7 +77,6 @@[m [mconst GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {[m
+               border: '1px solid var(--border-color)',[m
+               marginBottom: '16px'[m
+             }}>[m
+[31m-              <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>Game Information</h3>[m
+               <p style={{ margin: '0 0 8px 0' }}>You're about to join game:</p>[m
+               <div className="game-url" style={{ [m
+                 background: 'var(--bg-primary)', [m
+[36m@@ -89,9 +89,6 @@[m [mconst GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {[m
+               }}>[m
+                 {window.location.origin}?game={gameId}[m
+               </div>[m
+[31m-              <p className="text-muted" style={{ margin: '0', fontSize: '14px' }}>[m
+[31m-                Share this URL with other team members to invite them to the game.[m
+[31m-              </p>[m
+             </div>[m
+           )}[m
+ [m
