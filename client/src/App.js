@@ -107,6 +107,56 @@ const AppContent = () => {
     );
   }
 
+  // Show setup form for joining existing game (when we have gameId but no game data)
+  if (game.gameId && !game.game && !game.isLoading) {
+    console.log(`[${new Date().toISOString()}] Rendering GameSetup for joining existing game with gameId: ${game.gameId}`);
+    return (
+      <div>
+        <ConnectionIndicator connection={connection} />
+        <div className="container">
+          <ThemeToggle />
+          
+          <div className="text-center mb-4">
+            <h1>Planning Poker</h1>
+            <p className="text-muted">Join existing game</p>
+          </div>
+          
+          {game.error && (
+            <div className="card" style={{ background: '#f8d7da', color: '#721c24', border: '1px solid #f5c6cb' }}>
+              <p>
+                {game.error}
+                {game.error === 'Game not found.' && (
+                  <span>
+                    {' '}
+                    <a 
+                      href="/" 
+                      style={{ color: '#721c24', textDecoration: 'underline', fontWeight: 'bold' }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.href = '/';
+                      }}
+                    >
+                      Click here to start a new game!
+                    </a>
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
+
+          <GameSetup
+            gameId={game.gameId}
+            onCreateGame={handleCreateGame}
+            onJoinGame={handleJoinGame}
+            prefillName={game.playerName || localStorage.getItem('planningPokerPlayerName') || ''}
+          />
+        </div>
+        
+        <Footer />
+      </div>
+    );
+  }
+
   console.log(`[${new Date().toISOString()}] Rendering GameSetup with gameId: ${game.gameId}`);
   
   return (

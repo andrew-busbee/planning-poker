@@ -42,9 +42,18 @@ export const GameProvider = ({ children }) => {
         console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Auto-reconnecting to saved game`);
         game.autoReconnect(savedGameData);
       } else {
-        // No saved data or different game - try to auto-reconnect to the URL game
-        console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Auto-reconnecting to URL game`);
-        game.autoReconnectToUrl(urlGameId);
+        // No saved data or different game - check if user has a saved name
+        const savedPlayerName = localStorage.getItem('planningPokerPlayerName');
+        
+        if (savedPlayerName && savedPlayerName.trim()) {
+          // User has a saved name - auto-join
+          console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Auto-reconnecting to URL game with saved name`);
+          game.autoReconnectToUrl(urlGameId);
+        } else {
+          // No saved name - show setup form instead of auto-joining
+          console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] No saved name, showing setup form for URL game`);
+          game.setGameIdForJoin(urlGameId);
+        }
       }
     }
   }, [game]);
@@ -70,15 +79,23 @@ export const GameProvider = ({ children }) => {
             });
           }, 200);
         } else {
-          console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Connected, auto-rejoining URL game`);
-          const savedPlayerName = localStorage.getItem('planningPokerPlayerName') || '';
-          setTimeout(() => {
-            game.joinGame({
-              gameId: game.gameId,
-              playerName: savedPlayerName,
-              isWatcher: false
-            });
-          }, 200);
+          // Check if user has a saved name before auto-rejoining
+          const savedPlayerName = localStorage.getItem('planningPokerPlayerName');
+          
+          if (savedPlayerName && savedPlayerName.trim()) {
+            console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Connected, auto-rejoining URL game with saved name`);
+            setTimeout(() => {
+              game.joinGame({
+                gameId: game.gameId,
+                playerName: savedPlayerName,
+                isWatcher: false
+              });
+            }, 200);
+          } else {
+            // No saved name - stop auto-rejoin, show setup form
+            console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Connected, but no saved name - stopping auto-rejoin`);
+            game.setIsLoading(false);
+          }
         }
       } else {
         // No URL game parameter, clear the game state to prevent infinite loops
@@ -131,13 +148,21 @@ export const GameProvider = ({ children }) => {
               isWatcher: savedGameData.isWatcher
             });
           } else {
-            console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] App came to foreground, auto-rejoining URL game`);
-            const savedPlayerName = localStorage.getItem('planningPokerPlayerName') || '';
-            game.joinGame({
-              gameId: game.gameId,
-              playerName: savedPlayerName,
-              isWatcher: false
-            });
+            // Check if user has a saved name before auto-rejoining
+            const savedPlayerName = localStorage.getItem('planningPokerPlayerName');
+            
+            if (savedPlayerName && savedPlayerName.trim()) {
+              console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] App came to foreground, auto-rejoining URL game with saved name`);
+              game.joinGame({
+                gameId: game.gameId,
+                playerName: savedPlayerName,
+                isWatcher: false
+              });
+            } else {
+              // No saved name - stop auto-rejoin, show setup form
+              console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] App came to foreground, but no saved name - stopping auto-rejoin`);
+              game.setIsLoading(false);
+            }
           }
         } else {
           // No URL game parameter, clear the game state to prevent infinite loops

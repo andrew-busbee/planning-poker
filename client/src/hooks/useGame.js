@@ -379,7 +379,11 @@ export const useGame = () => {
     // Utilities
     loadGameData,
     saveGameData,
-    clearGameData
+    clearGameData,
+    
+    // State setters for GameProvider
+    setGameIdForJoin: setGameId,
+    setIsLoading
   };
 };
 
