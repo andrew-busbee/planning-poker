@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useGameContext } from './GameProvider';
-import { useGameStore } from '../stores/gameStore';
 import CardDeck from './CardDeck';
 import PlayerCard from './PlayerCard';
 import GameStats from './GameStats';
@@ -8,50 +6,87 @@ import GameControls from './GameControls';
 import ThemeToggle from './ThemeToggle';
 import ConfettiEffect from './ConfettiEffect';
 
-const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
-  const { game: gameContext, socketService } = useGameContext();
-  const gameStore = useGameStore();
-  
+const GameRoom = ({ game, playerName, isWatcher, socket, currentSocketId, onToggleRole }) => {
+  const [selectedCard, setSelectedCard] = useState(null);
   const [gameUrl, setGameUrl] = useState('');
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [consensusPulse, setConsensusPulse] = useState(false);
 
   useEffect(() => {
     // Update URL with game ID
     const url = `${window.location.origin}?game=${game.id}`;
     setGameUrl(url);
+    
+    // Note: URL updating is now handled in App.js to ensure it happens immediately
+    // when gameId is set, not just when GameRoom component renders
   }, [game.id]);
+
+  // Listen for role toggle updates
+  useEffect(() => {
+    const handleRoleToggled = (updatedGame) => {
+      // The game state will be updated by the parent component
+      // This listener ensures we're aware of role changes
+    };
+
+    socket.on('role-toggled', handleRoleToggled);
+
+    return () => {
+      socket.off('role-toggled', handleRoleToggled);
+    };
+  }, [socket]);
 
   // Reset selected card when current player becomes a watcher
   useEffect(() => {
-    const currentPlayer = game.players.find(p => p.id === socketId);
+    const currentPlayer = game.players.find(p => p.id === currentSocketId);
     const currentIsWatcher = currentPlayer ? currentPlayer.isWatcher : isWatcher;
     
     // If the current player is a watcher, reset their selected card
     if (currentIsWatcher) {
-      gameStore.setSelectedCard(null);
+      setSelectedCard(null);
     }
-  }, [game.players, socketId, isWatcher, gameStore]);
+  }, [game.players, currentSocketId, isWatcher]);
+
+  // Listen for deck changes and reset selected card
+  useEffect(() => {
+    const handleDeckChanged = (updatedGame) => {
+      // Reset selected card when deck changes
+      setSelectedCard(null);
+    };
+
+    socket.on('deck-changed', handleDeckChanged);
+
+    return () => {
+      socket.off('deck-changed', handleDeckChanged);
+    };
+  }, [socket]);
 
   const handleCardSelect = (card) => {
     if (isWatcher || game.revealed) return;
     
-    gameStore.setSelectedCard(card);
-    gameStore.castVote(game.id, card);
+    setSelectedCard(card);
+    socket.emit('cast-vote', {
+      gameId: game.id,
+      card: card
+    });
   };
 
   const handleRevealVotes = () => {
-    gameStore.revealVotes(game.id);
+    socket.emit('reveal-votes', { gameId: game.id });
+    // Keep selectedCard highlighted until game is reset
   };
 
   const handleResetGame = () => {
-    gameStore.resetGame(game.id);
+    socket.emit('reset-game', { gameId: game.id });
+    // Clear card selection immediately
+    setSelectedCard(null);
   };
 
   const handleDeckChange = (deckType) => {
-    gameStore.changeDeck(game.id, deckType);
+    socket.emit('change-deck', { gameId: game.id, deckType });
   };
 
   const handleToggleRole = () => {
-    gameStore.toggleRole(game.id);
+    socket.emit('toggle-role', { gameId: game.id });
   };
 
   const copyGameUrl = () => {
@@ -70,7 +105,8 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
   };
 
 
-  const currentPlayer = game.players.find(p => p.id === socketId);
+
+  const currentPlayer = game.players.find(p => p.id === currentSocketId);
   const hasVoted = currentPlayer ? currentPlayer.hasVoted : false;
   const currentIsWatcher = currentPlayer ? currentPlayer.isWatcher : isWatcher;
 
@@ -96,31 +132,32 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
   // Trigger confetti on consensus
   useEffect(() => {
     if (isConsensus && game.revealed) {
-      gameStore.setShowConfetti(true);
-      gameStore.setConsensusPulse(true);
+      setShowConfetti(true);
+      setConsensusPulse(true);
       
       // Stop pulse after 5 seconds
       const timer = setTimeout(() => {
-        gameStore.setConsensusPulse(false);
+        setConsensusPulse(false);
       }, 5000);
       
       return () => clearTimeout(timer);
     }
-  }, [isConsensus, game.revealed, gameStore]);
+  }, [isConsensus, game.revealed]);
 
   // Reset selected card when game is reset
   useEffect(() => {
     // When game is reset (revealed goes from true to false), clear selection
     if (game.revealed === false) {
-      gameStore.setSelectedCard(null);
+      setSelectedCard(null);
     }
-  }, [game.revealed, gameStore]);
+  }, [game.revealed]);
+
 
   return (
     <div>
       <ConfettiEffect 
-        trigger={gameStore.showConfetti} 
-        onComplete={() => gameStore.setShowConfetti(false)} 
+        trigger={showConfetti} 
+        onComplete={() => setShowConfetti(false)} 
       />
       
       <ThemeToggle />
@@ -133,7 +170,7 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
           </button>
         </div>
         <button
-          onClick={handleToggleRole}
+          onClick={onToggleRole}
           className="btn btn-warning"
         >
           {currentIsWatcher ? 'Switch to Player' : 'Switch to Watcher'}
@@ -152,7 +189,7 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
             textAlign: 'center',
             marginBottom: '16px',
             fontWeight: 'bold',
-            animation: gameStore.consensusPulse ? 'pulse 2s infinite' : 'none'
+            animation: consensusPulse ? 'pulse 2s infinite' : 'none'
           }}>
             🎉🎉 Consensus Reached! 🎉🎉
           </div>
@@ -164,7 +201,7 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
               player={player}
               vote={game.votes[player.id]}
               revealed={game.revealed}
-              isCurrentPlayer={player.id === socketId}
+              isCurrentPlayer={player.id === currentSocketId}
             />
           ))}
         </div>
@@ -175,7 +212,7 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
         <CardDeck
           deck={game.deck}
           onCardSelect={handleCardSelect}
-          selectedCard={gameStore.selectedCard}
+          selectedCard={selectedCard}
           hasVoted={hasVoted}
           isWatcher={currentIsWatcher}
           revealed={game.revealed}
@@ -192,13 +229,13 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
       )}
 
       {/* Game Controls */}
-      <GameControls
-        game={game}
-        isWatcher={currentIsWatcher}
-        onRevealVotes={handleRevealVotes}
-        onResetGame={handleResetGame}
-        onDeckChange={handleDeckChange}
-      />
+        <GameControls
+          game={game}
+          isWatcher={currentIsWatcher}
+          onRevealVotes={handleRevealVotes}
+          onResetGame={handleResetGame}
+          onDeckChange={handleDeckChange}
+        />
 
     </div>
   );

@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:24-alpine AS build
 
 # Set working directory
 WORKDIR /app
@@ -16,10 +16,10 @@ RUN cd client && npm install --no-audit --no-fund --verbose || npm install --leg
 COPY . .
 
 # Build React app
-RUN cd client && npm run build
+RUN cd client && NODE_OPTIONS="--no-deprecation" npm run build
 
 # Production stage
-#Previous Version FROM node:18-alpine
+#Previous Version FROM node:24-alpine
 FROM node:24-alpine
 LABEL org.opencontainers.image.source="https://github.com/andrew-busbee/planning-poker"
 

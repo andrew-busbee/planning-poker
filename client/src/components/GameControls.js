@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CustomDeckEditor from './CustomDeckEditor';
 
-const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChange, socket }) => {
+const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChange }) => {
   const [availableDecks, setAvailableDecks] = useState({});
   const [showCustomDeckEditor, setShowCustomDeckEditor] = useState(false);
   const [isEditingCustom, setIsEditingCustom] = useState(false);
@@ -113,7 +113,6 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
       {showCustomDeckEditor && (
         <CustomDeckEditor
           game={game}
-          socket={socket}
           onClose={() => {
             setShowCustomDeckEditor(false);
             setIsEditingCustom(false);

@@ -250,6 +250,21 @@ class Game {
 }
 
 // File persistence functions
+let saveTimeout = null;
+const SAVE_DEBOUNCE_MS = 1000; // 1 second debounce
+
+function saveGames() {
+  // Clear existing timeout
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+  }
+  
+  // Set new timeout
+  saveTimeout = setTimeout(() => {
+    saveGamesImmediate();
+  }, SAVE_DEBOUNCE_MS);
+}
+
 function loadGames() {
   try {
     if (fs.existsSync(GAMES_FILE)) {
@@ -277,7 +292,7 @@ function loadGames() {
   }
 }
 
-function saveGames() {
+function saveGamesImmediate() {
   try {
     console.log(`[${new Date().toISOString()}] Saving ${games.size} games to disk...`);
     const gamesData = Array.from(games.values()).map(game => game.serialize());
@@ -311,9 +326,9 @@ function saveGames() {
 console.log(`[${new Date().toISOString()}] Loading games from disk...`);
 loadGames();
 
-// Save games every 1 minute
+// Save games every 5 minutes
 setInterval(() => {
-  saveGames();
+  saveGamesImmediate();
 }, 5 * 60 * 1000); // 5 minutes
 
 // Performance monitoring every 5 minutes
@@ -356,13 +371,21 @@ setInterval(() => {
 // Save games on server shutdown
 process.on('SIGINT', () => {
   console.log(`[${new Date().toISOString()}] Server shutting down, saving games...`);
-  saveGames();
+  // Clear any pending save timeout and save immediately
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+  }
+  saveGamesImmediate();
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
   console.log(`[${new Date().toISOString()}] Server shutting down, saving games...`);
-  saveGames();
+  // Clear any pending save timeout and save immediately
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+  }
+  saveGamesImmediate();
   process.exit(0);
 });
 
@@ -415,7 +438,7 @@ setInterval(() => {
   });
   
   if (expiredGames.length > 0) {
-    saveGames(); // Save after cleanup
+    saveGamesImmediate(); // Save after cleanup
   }
 }, 60 * 60 * 1000); // Check every hour
 
@@ -445,7 +468,7 @@ io.on('connection', (socket) => {
     transport: socket.conn.transport.name
   });
   
-  console.log(`[${new Date().toISOString()}] [CONNECT] Connection details: ${socket.id}, Transport: ${socket.conn.transport.name}, Remote address: ${socket.handshake.address}`);
+  console.log(`[${new Date().toISOString()}] [CONNECT] Connection details: ${socket.id}, Transport: ${socket.conn.transport.name}`);
 
   socket.on('create-game', (data) => {
     const gameId = uuidv4().substring(0, 8);
@@ -465,8 +488,11 @@ io.on('connection', (socket) => {
       connection.lastSeen = new Date();
     }
     
+    // Save game to disk immediately after creation
+    saveGames();
+    console.log(`[${new Date().toISOString()}] Game created and saved to disk: ${gameId}, Total games: ${games.size}`);
+    
     socket.emit('game-created', { gameId, game: game.getGameState() });
-    console.log(`[${new Date().toISOString()}] Game created: ${gameId}, Total games: ${games.size}`);
   });
 
   socket.on('join-game', (data) => {
@@ -482,14 +508,19 @@ io.on('connection', (socket) => {
 
     // Check if player is already in the game (reconnection scenario)
     const existingPlayer = game.players.get(socket.id);
+    let playerAdded = false;
+    
     if (existingPlayer) {
       // Update existing player info and last seen
       existingPlayer.name = data.playerName || existingPlayer.name;
       existingPlayer.isWatcher = data.isWatcher;
       existingPlayer.lastSeen = new Date();
       existingPlayer.hasVoted = false; // Reset vote status on reconnection
+      console.log(`[${new Date().toISOString()}] Player reconnected: ${socket.id}, Player: ${existingPlayer.name}, Game: ${data.gameId}`);
     } else {
       game.addPlayer(socket.id, data.playerName, data.isWatcher);
+      playerAdded = true;
+      console.log(`[${new Date().toISOString()}] New player joined: ${socket.id}, Player: ${data.playerName}, Game: ${data.gameId}`);
     }
     
     socket.join(data.gameId);
@@ -503,8 +534,17 @@ io.on('connection', (socket) => {
       connection.lastSeen = new Date();
     }
     
-    io.to(data.gameId).emit('player-joined', game.getGameState());
-    console.log(`[${new Date().toISOString()}] Player joined game ${data.gameId}: ${data.playerName}, Players in game: ${game.players.size}`);
+    // Only save and emit if this was a new player join (not a reconnection)
+    if (playerAdded) {
+      // Save game to disk immediately after new player joins
+      saveGames();
+      console.log(`[${new Date().toISOString()}] Player joined and game saved to disk: ${data.gameId}: ${data.playerName}, Players in game: ${game.players.size}`);
+      
+      io.to(data.gameId).emit('player-joined', game.getGameState());
+    } else {
+      // For reconnections, just send the current game state without triggering save
+      socket.emit('game-state', game.getGameState());
+    }
   });
 
   // Heartbeat mechanism with health tracking
@@ -568,6 +608,9 @@ io.on('connection', (socket) => {
         console.log(`[${new Date().toISOString()}] All players voted: Game ${data.gameId}, ${game.votes.size} votes`);
       }
       
+      // Save game to disk immediately after vote is cast
+      saveGames();
+      
       io.to(data.gameId).emit('vote-cast', game.getGameState());
     } else {
       const player = game.players.get(socket.id);
@@ -597,6 +640,9 @@ io.on('connection', (socket) => {
       }
     }
     
+    // Save game to disk immediately after votes are revealed
+    saveGames();
+    
     io.to(data.gameId).emit('votes-revealed', game.getGameState());
   });
 
@@ -610,6 +656,10 @@ io.on('connection', (socket) => {
     game.resetGame();
     game.lastActivity = new Date(); // Update last activity
     console.log(`[${new Date().toISOString()}] Game reset: Game ${data.gameId}`);
+    
+    // Save game to disk immediately after game is reset
+    saveGames();
+    
     io.to(data.gameId).emit('game-reset', game.getGameState());
   });
 
@@ -631,6 +681,9 @@ io.on('connection', (socket) => {
     game.lastActivity = new Date(); // Update last activity
     console.log(`[${new Date().toISOString()}] Deck changed: Game ${data.gameId}, New deck: ${data.deckType}`);
     
+    // Save game to disk immediately after deck is changed
+    saveGames();
+    
     io.to(data.gameId).emit('deck-changed', game.getGameState());
   });
 
@@ -644,6 +697,10 @@ io.on('connection', (socket) => {
     game.createCustomDeck(data.name, data.cards);
     game.lastActivity = new Date(); // Update last activity
     console.log(`[${new Date().toISOString()}] Custom deck created: Game ${data.gameId}, Deck: ${data.name}, Cards: ${data.cards.length}`);
+    
+    // Save game to disk immediately after custom deck is created
+    saveGames();
+    
     io.to(data.gameId).emit('custom-deck-created', game.getGameState());
   });
 
@@ -657,6 +714,10 @@ io.on('connection', (socket) => {
     game.editCustomDeck(data.name, data.cards);
     game.lastActivity = new Date(); // Update last activity
     console.log(`[${new Date().toISOString()}] Custom deck edited: Game ${data.gameId}, Deck: ${data.name}, Cards: ${data.cards.length}`);
+    
+    // Save game to disk immediately after custom deck is edited
+    saveGames();
+    
     io.to(data.gameId).emit('custom-deck-edited', game.getGameState());
   });
 
@@ -684,38 +745,13 @@ io.on('connection', (socket) => {
 
     game.lastActivity = new Date(); // Update last activity
     console.log(`[${new Date().toISOString()}] Role toggled: ${socket.id}, Player: ${player.name}, New role: ${player.isWatcher ? 'Watcher' : 'Player'}, Game: ${data.gameId}`);
+    
+    // Save game to disk immediately after role is toggled
+    saveGames();
+    
     io.to(data.gameId).emit('role-toggled', game.getGameState());
   });
 
-  socket.on('change-name', (data) => {
-    const game = games.get(data.gameId);
-    if (!game) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Name change failed: ${socket.id}, Game not found: ${data.gameId}`);
-      return;
-    }
-
-    const player = game.players.get(socket.id);
-    if (!player) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Name change failed: ${socket.id}, Player not found in game: ${data.gameId}`);
-      return;
-    }
-
-    // Check if name is valid
-    const trimmedName = data.newName.trim();
-    if (!trimmedName || trimmedName.length > 50) {
-      console.log(`[${new Date().toISOString()}] [WARN] Invalid name change attempt: ${socket.id}, Name: ${data.newName}, Game: ${data.gameId}`);
-      return;
-    }
-
-    // Update player name
-    const oldName = player.name;
-    player.name = trimmedName;
-
-    // Notify all players in the game
-    game.lastActivity = new Date(); // Update last activity
-    console.log(`[${new Date().toISOString()}] Name changed: ${socket.id}, Old: ${oldName}, New: ${trimmedName}, Game: ${data.gameId}`);
-    io.to(data.gameId).emit('name-changed', game.getGameState());
-  });
 
   socket.on('leave-game', (data) => {
     const game = games.get(data.gameId);

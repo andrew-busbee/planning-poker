@@ -205,3 +205,5 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
 };
 
 export default GameRoom;
+
+

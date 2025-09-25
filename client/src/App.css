@@ -536,6 +536,52 @@ body {
   }
 }
 
+/* Connection Indicator */
+.connection-indicator {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--bg-primary);
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  color: var(--text-primary);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.green {
+  background-color: #28a745;
+  box-shadow: 0 0 4px rgba(40, 167, 69, 0.4);
+}
+
+.status-dot.yellow {
+  background-color: #ffc107;
+  box-shadow: 0 0 4px rgba(255, 193, 7, 0.4);
+}
+
+.status-dot.red {
+  background-color: #dc3545;
+  box-shadow: 0 0 4px rgba(220, 53, 69, 0.4);
+}
+
+.status-text {
+  white-space: nowrap;
+  font-size: 13px;
+}
+
 /* Modal styles */
 .modal-overlay {
   position: fixed;

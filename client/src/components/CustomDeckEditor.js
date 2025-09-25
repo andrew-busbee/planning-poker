@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { socketService } from '../services/socketService';
 
-const CustomDeckEditor = ({ game, socket, onClose, isEditing = false }) => {
+const CustomDeckEditor = ({ game, onClose, isEditing = false }) => {
   const [deckName, setDeckName] = useState('');
   const [cards, setCards] = useState(['', '', '', '', '']); // Start with 5 empty slots
   const [errors, setErrors] = useState({});
@@ -53,14 +54,12 @@ const CustomDeckEditor = ({ game, socket, onClose, isEditing = false }) => {
     const validCards = cards.filter(card => card.trim() !== '');
     
     if (isEditing) {
-      socket.emit('edit-custom-deck', {
-        gameId: game.id,
+      socketService.editCustomDeck(game.id, {
         name: deckName.trim(),
         cards: validCards
       });
     } else {
-      socket.emit('create-custom-deck', {
-        gameId: game.id,
+      socketService.createCustomDeck(game.id, {
         name: deckName.trim(),
         cards: validCards
       });

@@ -4,7 +4,7 @@ import WatcherCardBack from './WatcherCardBack';
 import AndrewWatcherCardBack from './AndrewWatcherCardBack';
 import Confetti from 'react-confetti';
 
-const PlayerCard = ({ player, vote, revealed, isCurrentPlayer, onEditName }) => {
+const PlayerCard = ({ player, vote, revealed, isCurrentPlayer }) => {
   const [isFlipped, setIsFlipped] = useState(false);
 
   useEffect(() => {
@@ -56,32 +56,6 @@ const PlayerCard = ({ player, vote, revealed, isCurrentPlayer, onEditName }) => 
       <div className={`player-status ${getStatusClass()}`}>
         {getStatusText()}
       </div>
-      {isCurrentPlayer && (
-        <button
-          onClick={() => onEditName && onEditName()}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '2px 4px',
-            borderRadius: '4px',
-            color: 'var(--text-muted)',
-            fontSize: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '2px',
-            margin: '6px auto 0',
-            transition: 'color 0.2s ease',
-            whiteSpace: 'nowrap',
-            minWidth: '0'
-          }}
-          onMouseEnter={(e) => e.target.style.color = 'var(--accent-color)'}
-          onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'}
-          title="Edit name"
-        >
-          ✏️ Change name
-        </button>
-      )}
     </div>
   );
 };

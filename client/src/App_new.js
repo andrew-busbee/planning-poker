@@ -4,7 +4,6 @@ import GameSetup from './components/GameSetup';
 import GameRoom from './components/GameRoom';
 import ThemeToggle from './components/ThemeToggle';
 import Footer from './components/Footer';
-import ConnectionIndicator from './components/ConnectionIndicator';
 import './App.css';
 
 // Main App component that uses the GameProvider
@@ -40,7 +39,6 @@ const AppContent = () => {
     console.log(`[${new Date().toISOString()}] Rendering GameRoom`);
     return (
       <div>
-        <ConnectionIndicator connection={connection} />
         <div className="container">
           <GameRoom
             game={game.game}
@@ -52,7 +50,7 @@ const AppContent = () => {
         </div>
         
         {/* Connection Status Indicator - Above Footer */}
-        {!connection.isConnected && game.gameId && (
+        {!connection.isConnected && (
           <div className="connection-status" style={{
             padding: '15px',
             textAlign: 'center',
@@ -79,7 +77,6 @@ const AppContent = () => {
     console.log(`[${new Date().toISOString()}] Rendering auto-reconnect loading state`);
     return (
       <div>
-        <ConnectionIndicator connection={connection} />
         <div className="container">
           <ThemeToggle />
           
@@ -111,7 +108,6 @@ const AppContent = () => {
   
   return (
     <div>
-      <ConnectionIndicator connection={connection} />
       <div className="container">
         <ThemeToggle />
         
@@ -169,7 +165,7 @@ const AppContent = () => {
       </div>
       
       {/* Connection Status Indicator - Above Footer */}
-      {!connection.isConnected && game.gameId && (
+      {!connection.isConnected && (
         <div className="connection-status" style={{
           padding: '15px',
           textAlign: 'center',
@@ -201,3 +197,6 @@ function App() {
 }
 
 export default App;
+
+
+
