@@ -14,7 +14,9 @@ const CustomDeckEditor = ({ game, onClose, isEditing = false }) => {
   }, [isEditing, game.customDeck]);
 
   const addCardSlot = () => {
-    setCards([...cards, '']);
+    if (cards.length < 15) {
+      setCards([...cards, '']);
+    }
   };
 
   const removeCardSlot = (index) => {
@@ -35,11 +37,19 @@ const CustomDeckEditor = ({ game, onClose, isEditing = false }) => {
     
     if (!deckName.trim()) {
       newErrors.deckName = 'Deck name is required';
+    } else if (deckName.length > 15) {
+      newErrors.deckName = 'Deck name must be 15 characters or less';
     }
     
     const validCards = cards.filter(card => card.trim() !== '');
     if (validCards.length < 2) {
       newErrors.cards = 'At least 2 cards are required';
+    } else {
+      // Check if any card exceeds 15 characters
+      const invalidCards = validCards.filter(card => card.length > 15);
+      if (invalidCards.length > 0) {
+        newErrors.cards = 'Each card must be 15 characters or less';
+      }
     }
     
     setErrors(newErrors);
@@ -79,7 +89,7 @@ const CustomDeckEditor = ({ game, onClose, isEditing = false }) => {
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{isEditing ? 'Edit Custom Deck' : 'Create Custom Deck'}</h3>
+          <h3>{isEditing ? 'Edit Custom Deck (15 Cards Max)' : 'Create Custom Deck (15 Cards Max)'}</h3>
           <button className="modal-close" onClick={handleCancel}>×</button>
         </div>
         
@@ -93,6 +103,7 @@ const CustomDeckEditor = ({ game, onClose, isEditing = false }) => {
               value={deckName}
               onChange={(e) => setDeckName(e.target.value)}
               placeholder="Enter deck name"
+              maxLength={15}
               required
             />
             {errors.deckName && <span className="error-text">{errors.deckName}</span>}
@@ -110,6 +121,7 @@ const CustomDeckEditor = ({ game, onClose, isEditing = false }) => {
                     value={card}
                     onChange={(e) => updateCard(index, e.target.value)}
                     placeholder={`Card ${index + 1}`}
+                    maxLength={15}
                   />
                   {cards.length > 1 && (
                     <button
@@ -126,8 +138,9 @@ const CustomDeckEditor = ({ game, onClose, isEditing = false }) => {
                 type="button"
                 className="btn btn-secondary btn-sm"
                 onClick={addCardSlot}
+                disabled={cards.length >= 15}
               >
-                Add Card
+                Add Card {cards.length >= 15 ? '(Max 15 cards)' : ''}
               </button>
             </div>
           </div>

@@ -47,7 +47,7 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
   }, [game.revealed, gameStore]);
 
   const handleCardSelect = (card) => {
-    if (isWatcher || game.revealed) return;
+    if (currentIsWatcher || game.revealed) return;
     
     gameStore.setSelectedCard(card);
     gameStore.castVote(game.id, card);

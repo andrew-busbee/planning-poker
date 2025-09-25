@@ -57,12 +57,13 @@ const GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {
             />
           </div>
 
-          <div>
+          <div style={{ marginBottom: '16px' }}>
             <label>
               <input
                 type="checkbox"
                 checked={isWatcher}
                 onChange={(e) => setIsWatcher(e.target.checked)}
+                style={{ marginRight: '8px' }}
               />
               Join as watcher (can reveal votes and reset game, but cannot vote)
             </label>
@@ -76,7 +77,6 @@ const GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {
               border: '1px solid var(--border-color)',
               marginBottom: '16px'
             }}>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>Game Information</h3>
               <p style={{ margin: '0 0 8px 0' }}>You're about to join game:</p>
               <div className="game-url" style={{ 
                 background: 'var(--bg-primary)', 
@@ -89,9 +89,6 @@ const GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {
               }}>
                 {window.location.origin}?game={gameId}
               </div>
-              <p className="text-muted" style={{ margin: '0', fontSize: '14px' }}>
-                Share this URL with other team members to invite them to the game.
-              </p>
             </div>
           )}
 
