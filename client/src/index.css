@@ -135,7 +135,7 @@ code {
 
 .btn-warning {
   background: var(--warning-color);
-  color: var(--text-primary);
+  color: #212529;
 }
 
 .btn-warning:hover {
