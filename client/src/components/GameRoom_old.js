@@ -202,6 +202,7 @@ const GameRoom = ({ game, playerName, isWatcher, socket, currentSocketId, onTogg
               vote={game.votes[player.id]}
               revealed={game.revealed}
               isCurrentPlayer={player.id === currentSocketId}
+              game={game}
             />
           ))}
         </div>

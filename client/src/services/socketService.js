@@ -100,6 +100,11 @@ class SocketService {
     this.socket.emit('edit-custom-deck', { gameId, ...deckData });
   }
 
+  changePlayerName(gameId, newName) {
+    if (!this.socket) throw new Error('Socket not connected');
+    this.socket.emit('change-player-name', { gameId, newName });
+  }
+
   // Event listener management
   on(event, callback) {
     if (!this.socket) throw new Error('Socket not connected');

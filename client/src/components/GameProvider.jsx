@@ -38,22 +38,13 @@ export const GameProvider = ({ children }) => {
       const savedGameData = game.loadGameData();
       
       if (savedGameData && savedGameData.gameId === urlGameId) {
-        // We have matching saved data - auto-reconnect
+        // We have matching saved data - auto-reconnect to same game
         console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Auto-reconnecting to saved game`);
         game.autoReconnect(savedGameData);
       } else {
-        // No saved data or different game - check if user has a saved name
-        const savedPlayerName = localStorage.getItem('planningPokerPlayerName');
-        
-        if (savedPlayerName && savedPlayerName.trim()) {
-          // User has a saved name - auto-join
-          console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Auto-reconnecting to URL game with saved name`);
-          game.autoReconnectToUrl(urlGameId);
-        } else {
-          // No saved name - show setup form instead of auto-joining
-          console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] No saved name, showing setup form for URL game`);
-          game.setGameIdForJoin(urlGameId);
-        }
+        // Different game or no saved data - always show join game page
+        console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Different game or no saved data, showing setup form for URL game`);
+        game.setGameIdForJoin(urlGameId);
       }
     }
   }, [game]);
@@ -79,23 +70,9 @@ export const GameProvider = ({ children }) => {
             });
           }, 200);
         } else {
-          // Check if user has a saved name before auto-rejoining
-          const savedPlayerName = localStorage.getItem('planningPokerPlayerName');
-          
-          if (savedPlayerName && savedPlayerName.trim()) {
-            console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Connected, auto-rejoining URL game with saved name`);
-            setTimeout(() => {
-              game.joinGame({
-                gameId: game.gameId,
-                playerName: savedPlayerName,
-                isWatcher: false
-              });
-            }, 200);
-          } else {
-            // No saved name - stop auto-rejoin, show setup form
-            console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Connected, but no saved name - stopping auto-rejoin`);
-            game.setIsLoading(false);
-          }
+          // Different game or no saved data - stop auto-rejoin, show setup form
+          console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Connected, but different game or no saved data - stopping auto-rejoin`);
+          game.setIsLoading(false);
         }
       } else {
         // No URL game parameter, clear the game state to prevent infinite loops

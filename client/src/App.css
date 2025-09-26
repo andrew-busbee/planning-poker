@@ -582,6 +582,40 @@ body {
   font-size: 13px;
 }
 
+/* Player actions */
+.player-actions {
+  margin-top: 8px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.change-name-link {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.change-name-link:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  text-decoration: none;
+}
+
+.change-name-link:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
 /* Modal styles */
 .modal-overlay {
   position: fixed;
@@ -589,70 +623,134 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
+  backdrop-filter: blur(3px);
+  pointer-events: auto;
+  isolation: isolate;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .modal-content {
-  background: var(--bg-primary);
-  border-radius: 12px;
+  background: #ffffff;
+  border-radius: 16px;
   padding: 0;
-  max-width: 500px;
+  max-width: 420px;
   width: 90%;
   max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  position: relative;
+  z-index: 10000;
+  pointer-events: auto;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  animation: modalSlideIn 0.2s ease-out;
+  transform: translateZ(0);
+  will-change: transform;
+  contain: layout style paint;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .modal-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid var(--border-color);
+  padding: 32px 24px 24px 24px;
 }
 
 .modal-header h3 {
   margin: 0;
-  color: var(--text-primary);
+  color: #1a1a1a;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 20px;
   cursor: pointer;
-  color: var(--text-muted);
-  padding: 0;
-  width: 30px;
-  height: 30px;
+  color: #6b7280;
+  padding: 8px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .modal-close:hover {
-  background-color: var(--bg-secondary);
+  background-color: #f3f4f6;
+  color: #374151;
 }
 
 .modal-content form {
-  padding: 20px;
+  padding: 0 24px 32px 24px;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 32px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: var(--text-primary);
+  margin-bottom: 12px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 16px;
+  background: #ffffff;
+  color: #1a1a1a;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: #ffffff;
+}
+
+.form-group input::placeholder {
+  color: #9ca3af;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 14px;
+  margin-top: 8px;
+  display: block;
+  font-weight: 500;
 }
 
 .cards-input-container {
@@ -689,11 +787,75 @@ body {
 
 .modal-actions {
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-color);
+  gap: 12px;
+  justify-content: center;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.modal-actions .btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 100px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+}
+
+.modal-actions .btn-primary {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.modal-actions .btn-primary:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.modal-actions .btn-primary:active {
+  transform: translateY(0);
+}
+
+.modal-actions .btn-secondary {
+  background: #6b7280;
+  color: #ffffff;
+}
+
+.modal-actions .btn-secondary:hover:not(:disabled) {
+  background: #4b5563;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.modal-actions .btn-secondary:active {
+  transform: translateY(0);
+}
+
+.modal-actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Ensure modal is completely isolated from other elements */
+.modal-overlay * {
+  box-sizing: border-box;
+}
+
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .error-text {

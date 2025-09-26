@@ -726,6 +726,56 @@ io.on('connection', (socket) => {
     io.to(data.gameId).emit('custom-deck-edited', game.getGameState());
   });
 
+  socket.on('change-player-name', (data) => {
+    console.log(`[${new Date().toISOString()}] [SERVER] Received change-player-name event:`, data);
+    const game = games.get(data.gameId);
+    if (!game) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Player name change failed: ${socket.id}, Game not found: ${data.gameId}`);
+      socket.emit('error', { message: 'Game not found.' });
+      return;
+    }
+
+    const player = game.players.get(socket.id);
+    if (!player) {
+      console.log(`[${new Date().toISOString()}] [ERROR] Player name change failed: ${socket.id}, Player not found in game: ${data.gameId}`);
+      socket.emit('error', { message: 'You are not in this game.' });
+      return;
+    }
+
+    // Validate the new name
+    if (!data.newName || typeof data.newName !== 'string') {
+      socket.emit('error', { message: 'Invalid name provided.' });
+      return;
+    }
+
+    const trimmedName = data.newName.trim();
+    if (trimmedName.length === 0 || trimmedName.length > 20) {
+      socket.emit('error', { message: 'Name must be between 1 and 20 characters.' });
+      return;
+    }
+
+    // Update the player's name
+    const oldName = player.name;
+    player.name = trimmedName;
+    player.lastSeen = new Date();
+    game.lastActivity = new Date();
+    
+    // Update connection tracking
+    const connection = activeConnections.get(socket.id);
+    if (connection) {
+      connection.playerName = trimmedName;
+      connection.lastSeen = new Date();
+    }
+    
+    // Save game to disk
+    saveGames();
+    
+    console.log(`[${new Date().toISOString()}] Player name changed: ${socket.id}, Old name: ${oldName}, New name: ${trimmedName}, Game: ${data.gameId}`);
+    
+    // Notify all players in the game
+    io.to(data.gameId).emit('player-name-changed', game.getGameState());
+  });
+
   socket.on('toggle-role', (data) => {
     const game = games.get(data.gameId);
     if (!game) {

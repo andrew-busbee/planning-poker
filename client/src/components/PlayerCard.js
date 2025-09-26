@@ -3,9 +3,12 @@ import CardBack from './CardBack';
 import WatcherCardBack from './WatcherCardBack';
 import AndrewWatcherCardBack from './AndrewWatcherCardBack';
 import Confetti from 'react-confetti';
+import NameChangeModal from './NameChangeModal';
 
-const PlayerCard = ({ player, vote, revealed, isCurrentPlayer }) => {
+const PlayerCard = ({ player, vote, revealed, isCurrentPlayer, game }) => {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [previousName, setPreviousName] = useState(player?.name);
 
   useEffect(() => {
     if (revealed && vote) {
@@ -20,6 +23,15 @@ const PlayerCard = ({ player, vote, revealed, isCurrentPlayer }) => {
       setIsFlipped(false);
     }
   }, [revealed, vote]);
+
+  // Close modal when player name changes (indicating successful update)
+  useEffect(() => {
+    if (showNameModal && player?.name && previousName && player.name !== previousName) {
+      console.log(`[${new Date().toISOString()}] [PLAYERCARD] Player name changed from "${previousName}" to "${player.name}", closing modal`);
+      setShowNameModal(false);
+    }
+    setPreviousName(player?.name);
+  }, [player?.name, showNameModal, previousName]);
 
   const getStatusClass = () => {
     if (player.isWatcher) return 'watcher';
@@ -56,6 +68,29 @@ const PlayerCard = ({ player, vote, revealed, isCurrentPlayer }) => {
       <div className={`player-status ${getStatusClass()}`}>
         {getStatusText()}
       </div>
+      {isCurrentPlayer && (
+        <div className="player-actions">
+          <button 
+            className="change-name-link"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowNameModal(true);
+            }}
+            title="Change your name"
+          >
+            ✏️ Change name
+          </button>
+        </div>
+      )}
+      {showNameModal && (
+        <NameChangeModal
+          game={game}
+          currentPlayer={player}
+          onClose={() => {
+            setShowNameModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };

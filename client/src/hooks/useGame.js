@@ -381,6 +381,30 @@ export const useGame = () => {
       setGame(gameState);
     };
 
+    const handlePlayerNameChanged = (gameState) => {
+      setGame(gameState);
+      
+      // Update local storage with the new name if it's the current player
+      const currentSocketId = socketService.getSocket()?.id;
+      if (currentSocketId) {
+        const currentPlayer = gameState.players.find(p => p.id === currentSocketId);
+        if (currentPlayer && currentPlayer.name !== playerName) {
+          console.log(`[${new Date().toISOString()}] [GAME] Player name changed locally: ${playerName} -> ${currentPlayer.name}`);
+          setPlayerName(currentPlayer.name);
+          
+          // Update localStorage with the new name
+          const savedGameData = loadGameData();
+          if (savedGameData) {
+            savedGameData.playerName = currentPlayer.name;
+            saveGameData(savedGameData);
+          }
+          
+          // Also save the name separately for future games
+          localStorage.setItem('planningPokerPlayerName', currentPlayer.name);
+        }
+      }
+    };
+
     const handleError = (error) => {
       console.log(`[${new Date().toISOString()}] [GAME] Socket error received:`, error.message);
       setError(error.message);
@@ -410,6 +434,7 @@ export const useGame = () => {
     socket.on('player-left', handlePlayerLeft);
     socket.on('custom-deck-created', handleCustomDeckCreated);
     socket.on('custom-deck-edited', handleCustomDeckEdited);
+    socket.on('player-name-changed', handlePlayerNameChanged);
     socket.on('error', handleError);
 
     // Cleanup
@@ -424,6 +449,7 @@ export const useGame = () => {
       socket.off('player-left', handlePlayerLeft);
       socket.off('custom-deck-created', handleCustomDeckCreated);
       socket.off('custom-deck-edited', handleCustomDeckEdited);
+      socket.off('player-name-changed', handlePlayerNameChanged);
       socket.off('error', handleError);
     };
   }, [playerName, isWatcher, gameId, clearTimeouts, saveGameData, clearGameData]);
