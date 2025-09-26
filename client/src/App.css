@@ -344,9 +344,10 @@
 }
 
 .distribution-item {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
   gap: 12px;
+  align-items: center;
   padding: 8px 0;
 }
 
@@ -361,13 +362,11 @@
 .vote-count {
   font-size: 16px;
   font-weight: bold;
-  min-width: 30px;
-  text-align: center;
+  text-align: left;
   color: var(--accent-color);
 }
 
 .vote-bar {
-  flex: 1;
   height: 20px;
   background: var(--bg-tertiary);
   border-radius: 10px;
@@ -398,6 +397,7 @@
   
   .distribution-item {
     gap: 8px;
+    grid-template-columns: 1fr 1.5fr;
   }
   
   .card-value {
@@ -407,7 +407,6 @@
   
   .vote-count {
     font-size: 14px;
-    min-width: 25px;
   }
 }
 
