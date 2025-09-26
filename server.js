@@ -522,8 +522,15 @@ io.on('connection', (socket) => {
         logger.info(`Player role updated on reconnection: ${socket.id}, Player: ${existingPlayer.name}, New role: ${data.isWatcher ? 'Watcher' : 'Player'}, Game: ${data.gameId}`);
       }
       existingPlayer.lastSeen = new Date();
-      existingPlayer.hasVoted = false; // Reset vote status on reconnection
-      logger.info(`Player reconnected: ${socket.id}, Player: ${existingPlayer.name}, Game: ${data.gameId}`);
+      
+      // Preserve vote status if player already voted and vote still exists
+      if (game.votes.has(socket.id)) {
+        existingPlayer.hasVoted = true;
+        logger.info(`Player reconnected with preserved vote: ${socket.id}, Player: ${existingPlayer.name}, Game: ${data.gameId}`);
+      } else {
+        existingPlayer.hasVoted = false;
+        logger.info(`Player reconnected without vote: ${socket.id}, Player: ${existingPlayer.name}, Game: ${data.gameId}`);
+      }
     } else {
       game.addPlayer(socket.id, data.playerName, data.isWatcher);
       playerAdded = true;
