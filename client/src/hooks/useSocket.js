@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { socketService } from '../services/socketService';
+import logger from '../utils/logger';
 
 export const useSocket = () => {
   const [socket, setSocket] = useState(null);
@@ -16,19 +17,19 @@ export const useSocket = () => {
     const handleConnect = () => {
       setIsConnected(true);
       setSocketId(newSocket.id);
-      console.log(`[${new Date().toISOString()}] [SOCKET] Connected with ID: ${newSocket.id}`);
+      logger.info(`[SOCKET] Connected with ID: ${newSocket.id}`);
     };
 
     const handleDisconnect = () => {
       setIsConnected(false);
       setSocketId(null);
-      console.log(`[${new Date().toISOString()}] [SOCKET] Disconnected`);
+      logger.info('[SOCKET] Disconnected');
     };
 
     const handleReconnect = () => {
       setIsConnected(true);
       setSocketId(newSocket.id);
-      console.log(`[${new Date().toISOString()}] [SOCKET] Reconnected with ID: ${newSocket.id}`);
+      logger.info(`[SOCKET] Reconnected with ID: ${newSocket.id}`);
     };
 
     // Add event listeners

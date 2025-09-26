@@ -1,4 +1,6 @@
-console.log(`[${new Date().toISOString()}] Starting Planning Poker server...`);
+const logger = require('./server/utils/logger');
+
+logger.info('Starting Planning Poker server...');
 
 const express = require('express');
 const http = require('http');
@@ -8,13 +10,13 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 
-console.log(`[${new Date().toISOString()}] Dependencies loaded successfully`);
+logger.info('Dependencies loaded successfully');
 
-console.log(`[${new Date().toISOString()}] Creating Express app and HTTP server...`);
+logger.info('Creating Express app and HTTP server...');
 const app = express();
 const server = http.createServer(app);
 
-console.log(`[${new Date().toISOString()}] Configuring Socket.IO...`);
+logger.info('Configuring Socket.IO...');
 const io = socketIo(server, {
   cors: {
     origin: "*",
@@ -32,17 +34,17 @@ const io = socketIo(server, {
   serveClient: true, // Serve client files
   allowEIO3: true // Backward compatibility
 });
-console.log(`[${new Date().toISOString()}] Socket.IO configured successfully`);
+logger.info('Socket.IO configured successfully');
 
-console.log(`[${new Date().toISOString()}] Configuring Express middleware...`);
+logger.info('Configuring Express middleware...');
 app.use(cors());
 app.use(express.json());
 
 // Serve static files from the React app build directory
 const staticPath = path.join(__dirname, 'client/build');
-console.log(`[${new Date().toISOString()}] Serving static files from: ${staticPath}`);
+logger.info(`Serving static files from: ${staticPath}`);
 app.use(express.static(staticPath));
-console.log(`[${new Date().toISOString()}] Express middleware configured successfully`);
+logger.info('Express middleware configured successfully');
 
 // Store active games
 const games = new Map();
@@ -59,20 +61,20 @@ const connectionMetrics = {
 };
 
 // File persistence configuration
-console.log(`[${new Date().toISOString()}] Setting up file persistence...`);
+logger.info('Setting up file persistence...');
 const DATA_DIR = path.join(__dirname, 'data');
 const GAMES_FILE = path.join(DATA_DIR, 'games.json');
-console.log(`[${new Date().toISOString()}] Data directory: ${DATA_DIR}`);
-console.log(`[${new Date().toISOString()}] Games file: ${GAMES_FILE}`);
+logger.debug(`Data directory: ${DATA_DIR}`);
+logger.debug(`Games file: ${GAMES_FILE}`);
 
 // Ensure data directory exists
 try {
   if (!fs.existsSync(DATA_DIR)) {
-    console.log(`[${new Date().toISOString()}] Creating data directory: ${DATA_DIR}`);
+    logger.info(`Creating data directory: ${DATA_DIR}`);
     fs.mkdirSync(DATA_DIR, { recursive: true });
-    console.log(`[${new Date().toISOString()}] ✅ Data directory created successfully`);
+logger.info('✅ Data directory created successfully');
   } else {
-    console.log(`[${new Date().toISOString()}] ✅ Data directory already exists`);
+logger.info('✅ Data directory already exists');
   }
   
   // Check if we can write to the data directory
@@ -80,10 +82,10 @@ try {
   try {
     fs.writeFileSync(testFile, 'test');
     fs.unlinkSync(testFile);
-    console.log(`[${new Date().toISOString()}] ✅ Data directory is writable`);
+logger.info('✅ Data directory is writable');
   } catch (writeError) {
-    console.error(`[${new Date().toISOString()}] ❌ ERROR: Cannot write to data directory:`, writeError.message);
-    console.error(`[${new Date().toISOString()}] ❌ This will cause game saving to fail!`);
+    logger.error('❌ ERROR: Cannot write to data directory:', writeError.message);
+    logger.error('❌ This will cause game saving to fail!');
   }
   
   // Check if games file exists and is readable
@@ -95,13 +97,13 @@ try {
       console.error(`[${new Date().toISOString()}] ❌ ERROR: Games file exists but is not readable:`, readError.message);
     }
   } else {
-    console.log(`[${new Date().toISOString()}] ℹ️  Games file does not exist yet (will be created on first save)`);
+    logger.info('ℹ️  Games file does not exist yet (will be created on first save)');
   }
   
 } catch (error) {
-  console.error(`[${new Date().toISOString()}] ❌ CRITICAL ERROR: Failed to set up data directory:`, error.message);
-  console.error(`[${new Date().toISOString()}] ❌ Game persistence will not work!`);
-  console.error(`[${new Date().toISOString()}] ❌ Error details:`, error);
+  logger.error('❌ CRITICAL ERROR: Failed to set up data directory:', error.message);
+  logger.error('❌ Game persistence will not work!');
+  logger.error('❌ Error details:', error);
 }
 
 // Card deck configurations
@@ -268,62 +270,62 @@ function saveGames() {
 function loadGames() {
   try {
     if (fs.existsSync(GAMES_FILE)) {
-      console.log(`[${new Date().toISOString()}] Reading games file: ${GAMES_FILE}`);
+      logger.debug(`Reading games file: ${GAMES_FILE}`);
       const data = JSON.parse(fs.readFileSync(GAMES_FILE, 'utf8'));
-      console.log(`[${new Date().toISOString()}] Parsed ${data.length} games from file`);
+      logger.debug(`Parsed ${data.length} games from file`);
       
       data.forEach((gameData, index) => {
         try {
           const game = Game.deserialize(gameData);
           games.set(game.id, game);
         } catch (gameError) {
-          console.error(`[${new Date().toISOString()}] ⚠️  WARNING: Failed to deserialize game at index ${index}:`, gameError.message);
-          console.error(`[${new Date().toISOString()}] ⚠️  Skipping corrupted game data`);
+          logger.warn(`⚠️  WARNING: Failed to deserialize game at index ${index}:`, gameError.message);
+          logger.warn('⚠️  Skipping corrupted game data');
         }
       });
-      console.log(`[${new Date().toISOString()}] ✅ Successfully loaded ${games.size} games from disk`);
+      logger.info(`✅ Successfully loaded ${games.size} games from disk`);
     } else {
-      console.log(`[${new Date().toISOString()}] ℹ️  No games file found, starting with empty game list`);
+      logger.info('ℹ️  No games file found, starting with empty game list');
     }
   } catch (error) {
-    console.error(`[${new Date().toISOString()}] ❌ CRITICAL ERROR loading games:`, error.message);
-    console.error(`[${new Date().toISOString()}] ❌ Error details:`, error);
-    console.error(`[${new Date().toISOString()}] ❌ Continuing with empty game list`);
+    logger.error('❌ CRITICAL ERROR loading games:', error.message);
+    logger.error('❌ Error details:', error);
+    logger.error('❌ Continuing with empty game list');
   }
 }
 
 function saveGamesImmediate() {
   try {
-    console.log(`[${new Date().toISOString()}] Saving ${games.size} games to disk...`);
+    logger.debug(`Saving ${games.size} games to disk...`);
     const gamesData = Array.from(games.values()).map(game => game.serialize());
     const jsonData = JSON.stringify(gamesData, null, 2);
     
     // Check if data directory is still writable
     if (!fs.existsSync(DATA_DIR)) {
-      console.error(`[${new Date().toISOString()}] ❌ ERROR: Data directory no longer exists: ${DATA_DIR}`);
+      logger.error(`❌ ERROR: Data directory no longer exists: ${DATA_DIR}`);
       return;
     }
     
     fs.writeFileSync(GAMES_FILE, jsonData);
-    console.log(`[${new Date().toISOString()}] ✅ Successfully saved ${games.size} games to disk`);
+    logger.debug(`✅ Successfully saved ${games.size} games to disk`);
   } catch (error) {
-    console.error(`[${new Date().toISOString()}] ❌ ERROR saving games:`, error.message);
-    console.error(`[${new Date().toISOString()}] ❌ Error code:`, error.code);
-    console.error(`[${new Date().toISOString()}] ❌ Error details:`, error);
+    logger.error('❌ ERROR saving games:', error.message);
+    logger.error('❌ Error code:', error.code);
+    logger.error('❌ Error details:', error);
     
     // Provide specific guidance based on error type
     if (error.code === 'EACCES') {
-      console.error(`[${new Date().toISOString()}] ❌ Permission denied - check file/directory permissions`);
+      logger.error('❌ Permission denied - check file/directory permissions');
     } else if (error.code === 'ENOSPC') {
-      console.error(`[${new Date().toISOString()}] ❌ No space left on device`);
+      logger.error('❌ No space left on device');
     } else if (error.code === 'ENOENT') {
-      console.error(`[${new Date().toISOString()}] ❌ Directory or file not found`);
+      logger.error('❌ Directory or file not found');
     }
   }
 }
 
 // Load games on startup
-console.log(`[${new Date().toISOString()}] Loading games from disk...`);
+logger.info('Loading games from disk...');
 loadGames();
 
 // Save games every 5 minutes
@@ -363,14 +365,14 @@ setInterval(() => {
     .map(([reason, count]) => `${reason}: ${count}`)
     .join(', ');
   
-  console.log(`[${new Date().toISOString()}] [METRICS] Performance stats: Active games: ${games.size}, Active connections: ${activeConnections.size}, Unhealthy: ${unhealthyConnections}, High latency: ${highLatencyConnections}, Memory: ${memUsageMB.heapUsed}MB/${memUsageMB.heapTotal}MB heap, ${memUsageMB.rss}MB RSS, Uptime: ${uptime}min`);
-  console.log(`[${new Date().toISOString()}] [METRICS] Connection stats: Total connections: ${connectionMetrics.totalConnections}, Total disconnections: ${connectionMetrics.totalDisconnections}, Total reconnections: ${connectionMetrics.totalReconnections}`);
-  console.log(`[${new Date().toISOString()}] [METRICS] Disconnect reasons: ${disconnectReasonsSummary}`);
+  logger.info(`[METRICS] Performance stats: Active games: ${games.size}, Active connections: ${activeConnections.size}, Unhealthy: ${unhealthyConnections}, High latency: ${highLatencyConnections}, Memory: ${memUsageMB.heapUsed}MB/${memUsageMB.heapTotal}MB heap, ${memUsageMB.rss}MB RSS, Uptime: ${uptime}min`);
+  logger.info(`[METRICS] Connection stats: Total connections: ${connectionMetrics.totalConnections}, Total disconnections: ${connectionMetrics.totalDisconnections}, Total reconnections: ${connectionMetrics.totalReconnections}`);
+  logger.info(`[METRICS] Disconnect reasons: ${disconnectReasonsSummary}`);
 }, 5 * 60 * 1000); // 5 minutes
 
 // Save games on server shutdown
 process.on('SIGINT', () => {
-  console.log(`[${new Date().toISOString()}] Server shutting down, saving games...`);
+  logger.info('Server shutting down, saving games...');
   // Clear any pending save timeout and save immediately
   if (saveTimeout) {
     clearTimeout(saveTimeout);
@@ -380,7 +382,7 @@ process.on('SIGINT', () => {
 });
 
 process.on('SIGTERM', () => {
-  console.log(`[${new Date().toISOString()}] Server shutting down, saving games...`);
+  logger.info('Server shutting down, saving games...');
   // Clear any pending save timeout and save immediately
   if (saveTimeout) {
     clearTimeout(saveTimeout);
@@ -398,14 +400,14 @@ setInterval(() => {
   activeConnections.forEach((connection, socketId) => {
     if (now - connection.lastSeen > staleThreshold) {
       staleCount++;
-      console.log(`[${new Date().toISOString()}] [CLEANUP] Cleaning up stale connection: ${socketId}, Last seen: ${connection.lastSeen.toISOString()}, Player: ${connection.playerName}, Game: ${connection.gameId}`);
+      logger.debug(`[CLEANUP] Cleaning up stale connection: ${socketId}, Last seen: ${connection.lastSeen.toISOString()}, Player: ${connection.playerName}, Game: ${connection.gameId}`);
       const game = games.get(connection.gameId);
       if (game) {
         game.removePlayer(socketId);
         game.lastActivity = new Date(); // Update last activity
         
         if (game.players.size === 0) {
-          console.log(`[${new Date().toISOString()}] [CLEANUP] Game ${connection.gameId} is now empty, will expire in 24 hours (stale cleanup)`);
+          logger.debug(`[CLEANUP] Game ${connection.gameId} is now empty, will expire in 24 hours (stale cleanup)`);
         } else {
           io.to(connection.gameId).emit('player-left', game.getGameState());
         }
@@ -416,7 +418,7 @@ setInterval(() => {
   });
   
   if (staleCount > 0) {
-    console.log(`[${new Date().toISOString()}] [CLEANUP] Removed ${staleCount} stale connections, Active connections: ${activeConnections.size}`);
+    logger.info(`[CLEANUP] Removed ${staleCount} stale connections, Active connections: ${activeConnections.size}`);
   }
 }, 30000); // Check every 30 seconds - more frequent cleanup
 
@@ -434,7 +436,7 @@ setInterval(() => {
   
   expiredGames.forEach(gameId => {
     games.delete(gameId);
-    console.log(`[${new Date().toISOString()}] Game ${gameId} expired and deleted (24+ hours old)`);
+    logger.info(`Game ${gameId} expired and deleted (24+ hours old)`);
   });
   
   if (expiredGames.length > 0) {
@@ -443,10 +445,10 @@ setInterval(() => {
 }, 60 * 60 * 1000); // Check every hour
 
 // Socket.io connection handling
-console.log(`[${new Date().toISOString()}] Setting up Socket.IO event handlers...`);
+logger.info('Setting up Socket.IO event handlers...');
 io.on('connection', (socket) => {
   connectionMetrics.totalConnections++;
-  console.log(`[${new Date().toISOString()}] [CONNECT] User connected: ${socket.id}, Total connections: ${connectionMetrics.totalConnections}, Active connections: ${activeConnections.size + 1}`);
+  logger.info(`[CONNECT] User connected: ${socket.id}, Total connections: ${connectionMetrics.totalConnections}, Active connections: ${activeConnections.size + 1}`);
   
   // Track connection
   activeConnections.set(socket.id, {
@@ -468,7 +470,7 @@ io.on('connection', (socket) => {
     transport: socket.conn.transport.name
   });
   
-  console.log(`[${new Date().toISOString()}] [CONNECT] Connection details: ${socket.id}, Transport: ${socket.conn.transport.name}`);
+  logger.debug(`[CONNECT] Connection details: ${socket.id}, Transport: ${socket.conn.transport.name}`);
 
   socket.on('create-game', (data) => {
     const gameId = uuidv4().substring(0, 8);
@@ -490,7 +492,7 @@ io.on('connection', (socket) => {
     
     // Save game to disk immediately after creation
     saveGames();
-    console.log(`[${new Date().toISOString()}] Game created and saved to disk: ${gameId}, Total games: ${games.size}`);
+    logger.info(`Game created and saved to disk: ${gameId}, Total games: ${games.size}`);
     
     socket.emit('game-created', { gameId, game: game.getGameState() });
   });
@@ -498,7 +500,7 @@ io.on('connection', (socket) => {
   socket.on('join-game', (data) => {
     const game = games.get(data.gameId);
     if (!game) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Join game failed: ${socket.id}, Game not found: ${data.gameId}`);
+      logger.error(`[ERROR] Join game failed: ${socket.id}, Game not found: ${data.gameId}`);
       socket.emit('error', { message: 'Game not found.' });
       return;
     }
@@ -517,15 +519,15 @@ io.on('connection', (socket) => {
       // This prevents reconnections from accidentally changing player roles
       if (data.isWatcher !== undefined && data.isWatcher !== existingPlayer.isWatcher) {
         existingPlayer.isWatcher = data.isWatcher;
-        console.log(`[${new Date().toISOString()}] Player role updated on reconnection: ${socket.id}, Player: ${existingPlayer.name}, New role: ${data.isWatcher ? 'Watcher' : 'Player'}, Game: ${data.gameId}`);
+        logger.info(`Player role updated on reconnection: ${socket.id}, Player: ${existingPlayer.name}, New role: ${data.isWatcher ? 'Watcher' : 'Player'}, Game: ${data.gameId}`);
       }
       existingPlayer.lastSeen = new Date();
       existingPlayer.hasVoted = false; // Reset vote status on reconnection
-      console.log(`[${new Date().toISOString()}] Player reconnected: ${socket.id}, Player: ${existingPlayer.name}, Game: ${data.gameId}`);
+      logger.info(`Player reconnected: ${socket.id}, Player: ${existingPlayer.name}, Game: ${data.gameId}`);
     } else {
       game.addPlayer(socket.id, data.playerName, data.isWatcher);
       playerAdded = true;
-      console.log(`[${new Date().toISOString()}] New player joined: ${socket.id}, Player: ${data.playerName}, Game: ${data.gameId}`);
+      logger.info(`New player joined: ${socket.id}, Player: ${data.playerName}, Game: ${data.gameId}`);
     }
     
     socket.join(data.gameId);
@@ -543,7 +545,7 @@ io.on('connection', (socket) => {
     if (playerAdded) {
       // Save game to disk immediately after new player joins
       saveGames();
-      console.log(`[${new Date().toISOString()}] Player joined and game saved to disk: ${data.gameId}: ${data.playerName}, Players in game: ${game.players.size}`);
+      logger.info(`Player joined and game saved to disk: ${data.gameId}: ${data.playerName}, Players in game: ${game.players.size}`);
       
       io.to(data.gameId).emit('player-joined', game.getGameState());
     } else {
@@ -575,7 +577,7 @@ io.on('connection', (socket) => {
     
     // Log high latency connections
     if (health.latency > 2000) { // Log if latency > 2 seconds
-      console.log(`[${new Date().toISOString()}] [HEARTBEAT] High latency detected: ${socket.id}, Latency: ${health.latency}ms, Player: ${connection?.playerName || 'Unknown'}, Game: ${connection?.gameId || 'None'}`);
+      logger.warn(`[HEARTBEAT] High latency detected: ${socket.id}, Latency: ${health.latency}ms, Player: ${connection?.playerName || 'Unknown'}, Game: ${connection?.gameId || 'None'}`);
     }
     
     socket.emit('pong');
@@ -583,14 +585,14 @@ io.on('connection', (socket) => {
 
   // Socket error handling
   socket.on('error', (error) => {
-    console.log(`[${new Date().toISOString()}] [ERROR] Socket error: ${socket.id}, Error: ${error.message}`);
+    logger.error(`[ERROR] Socket error: ${socket.id}, Error: ${error.message}`);
   });
 
 
   socket.on('cast-vote', (data) => {
     const game = games.get(data.gameId);
     if (!game) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Vote cast failed: ${socket.id}, Game not found: ${data.gameId}`);
+      logger.error(`[ERROR] Vote cast failed: ${socket.id}, Game not found: ${data.gameId}`);
       return;
     }
 
@@ -605,12 +607,12 @@ io.on('connection', (socket) => {
       game.lastActivity = new Date(); // Update last activity
       const player = game.players.get(socket.id);
       const playerName = player ? player.name : 'Unknown';
-      console.log(`[${new Date().toISOString()}] Vote cast: ${socket.id}, Player: ${playerName}, Card: ${data.card}, Game: ${data.gameId}`);
+      logger.info(`Vote cast: ${socket.id}, Player: ${playerName}, Card: ${data.card}, Game: ${data.gameId}`);
       
       // Check if all players have voted
       const gameState = game.getGameState();
       if (gameState.allVoted) {
-        console.log(`[${new Date().toISOString()}] All players voted: Game ${data.gameId}, ${game.votes.size} votes`);
+        logger.info(`All players voted: Game ${data.gameId}, ${game.votes.size} votes`);
       }
       
       // Save game to disk immediately after vote is cast
@@ -620,20 +622,20 @@ io.on('connection', (socket) => {
     } else {
       const player = game.players.get(socket.id);
       const playerName = player ? player.name : 'Unknown';
-      console.log(`[${new Date().toISOString()}] [WARN] Invalid vote attempt: ${socket.id}, Player: ${playerName}, Card: ${data.card}, Game: ${data.gameId}`);
+      logger.warn(`[WARN] Invalid vote attempt: ${socket.id}, Player: ${playerName}, Card: ${data.card}, Game: ${data.gameId}`);
     }
   });
 
   socket.on('reveal-votes', (data) => {
     const game = games.get(data.gameId);
     if (!game) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Reveal votes failed: ${socket.id}, Game not found: ${data.gameId}`);
+      logger.error(`[ERROR] Reveal votes failed: ${socket.id}, Game not found: ${data.gameId}`);
       return;
     }
 
     game.revealVotes();
     game.lastActivity = new Date(); // Update last activity
-    console.log(`[${new Date().toISOString()}] Votes revealed: Game ${data.gameId}, ${game.votes.size} votes`);
+    logger.info(`Votes revealed: Game ${data.gameId}, ${game.votes.size} votes`);
     
     // Check for consensus (all votes are the same)
     const votes = Array.from(game.votes.values());
@@ -641,7 +643,7 @@ io.on('connection', (socket) => {
       const firstVote = votes[0];
       const allSame = votes.every(vote => vote === firstVote);
       if (allSame) {
-        console.log(`[${new Date().toISOString()}] Consensus reached: Game ${data.gameId}, Card: ${firstVote}, Players: ${votes.length}`);
+        logger.info(`Consensus reached: Game ${data.gameId}, Card: ${firstVote}, Players: ${votes.length}`);
       }
     }
     
@@ -654,13 +656,13 @@ io.on('connection', (socket) => {
   socket.on('reset-game', (data) => {
     const game = games.get(data.gameId);
     if (!game) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Game reset failed: ${socket.id}, Game not found: ${data.gameId}`);
+      logger.error(`[ERROR] Game reset failed: ${socket.id}, Game not found: ${data.gameId}`);
       return;
     }
 
     game.resetGame();
     game.lastActivity = new Date(); // Update last activity
-    console.log(`[${new Date().toISOString()}] Game reset: Game ${data.gameId}`);
+    logger.info(`Game reset: Game ${data.gameId}`);
     
     // Save game to disk immediately after game is reset
     saveGames();
@@ -671,7 +673,7 @@ io.on('connection', (socket) => {
   socket.on('change-deck', (data) => {
     const game = games.get(data.gameId);
     if (!game) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Deck change failed: ${socket.id}, Game not found: ${data.gameId}`);
+      logger.error(`[ERROR] Deck change failed: ${socket.id}, Game not found: ${data.gameId}`);
       return;
     }
 
@@ -684,7 +686,7 @@ io.on('connection', (socket) => {
     }
     game.resetGame();
     game.lastActivity = new Date(); // Update last activity
-    console.log(`[${new Date().toISOString()}] Deck changed: Game ${data.gameId}, New deck: ${data.deckType}`);
+    logger.info(`Deck changed: Game ${data.gameId}, New deck: ${data.deckType}`);
     
     // Save game to disk immediately after deck is changed
     saveGames();
@@ -695,13 +697,13 @@ io.on('connection', (socket) => {
   socket.on('create-custom-deck', (data) => {
     const game = games.get(data.gameId);
     if (!game) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Custom deck creation failed: ${socket.id}, Game not found: ${data.gameId}`);
+      logger.error(`[ERROR] Custom deck creation failed: ${socket.id}, Game not found: ${data.gameId}`);
       return;
     }
 
     game.createCustomDeck(data.name, data.cards);
     game.lastActivity = new Date(); // Update last activity
-    console.log(`[${new Date().toISOString()}] Custom deck created: Game ${data.gameId}, Deck: ${data.name}, Cards: ${data.cards.length}`);
+    logger.info(`Custom deck created: Game ${data.gameId}, Deck: ${data.name}, Cards: ${data.cards.length}`);
     
     // Save game to disk immediately after custom deck is created
     saveGames();
@@ -712,13 +714,13 @@ io.on('connection', (socket) => {
   socket.on('edit-custom-deck', (data) => {
     const game = games.get(data.gameId);
     if (!game) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Custom deck edit failed: ${socket.id}, Game not found: ${data.gameId}`);
+      logger.error(`[ERROR] Custom deck edit failed: ${socket.id}, Game not found: ${data.gameId}`);
       return;
     }
 
     game.editCustomDeck(data.name, data.cards);
     game.lastActivity = new Date(); // Update last activity
-    console.log(`[${new Date().toISOString()}] Custom deck edited: Game ${data.gameId}, Deck: ${data.name}, Cards: ${data.cards.length}`);
+    logger.info(`Custom deck edited: Game ${data.gameId}, Deck: ${data.name}, Cards: ${data.cards.length}`);
     
     // Save game to disk immediately after custom deck is edited
     saveGames();
@@ -727,17 +729,17 @@ io.on('connection', (socket) => {
   });
 
   socket.on('change-player-name', (data) => {
-    console.log(`[${new Date().toISOString()}] [SERVER] Received change-player-name event:`, data);
+    logger.debug(`[SERVER] Received change-player-name event:`, data);
     const game = games.get(data.gameId);
     if (!game) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Player name change failed: ${socket.id}, Game not found: ${data.gameId}`);
+      logger.error(`[ERROR] Player name change failed: ${socket.id}, Game not found: ${data.gameId}`);
       socket.emit('error', { message: 'Game not found.' });
       return;
     }
 
     const player = game.players.get(socket.id);
     if (!player) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Player name change failed: ${socket.id}, Player not found in game: ${data.gameId}`);
+      logger.error(`[ERROR] Player name change failed: ${socket.id}, Player not found in game: ${data.gameId}`);
       socket.emit('error', { message: 'You are not in this game.' });
       return;
     }
@@ -770,7 +772,7 @@ io.on('connection', (socket) => {
     // Save game to disk
     saveGames();
     
-    console.log(`[${new Date().toISOString()}] Player name changed: ${socket.id}, Old name: ${oldName}, New name: ${trimmedName}, Game: ${data.gameId}`);
+    logger.info(`Player name changed: ${socket.id}, Old name: ${oldName}, New name: ${trimmedName}, Game: ${data.gameId}`);
     
     // Notify all players in the game
     io.to(data.gameId).emit('player-name-changed', game.getGameState());
@@ -779,13 +781,13 @@ io.on('connection', (socket) => {
   socket.on('toggle-role', (data) => {
     const game = games.get(data.gameId);
     if (!game) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Role toggle failed: ${socket.id}, Game not found: ${data.gameId}`);
+      logger.error(`[ERROR] Role toggle failed: ${socket.id}, Game not found: ${data.gameId}`);
       return;
     }
 
     const player = game.players.get(socket.id);
     if (!player) {
-      console.log(`[${new Date().toISOString()}] [ERROR] Role toggle failed: ${socket.id}, Player not found in game: ${data.gameId}`);
+      logger.error(`[ERROR] Role toggle failed: ${socket.id}, Player not found in game: ${data.gameId}`);
       return;
     }
 
@@ -966,13 +968,13 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-console.log(`[${new Date().toISOString()}] Starting server on port ${PORT}...`);
+logger.info(`Starting server on port ${PORT}...`);
 
 server.on('error', (error) => {
   console.error(`[${new Date().toISOString()}] ❌ Server error:`, error);
 });
 
 server.listen(PORT, () => {
-  console.log(`[${new Date().toISOString()}] ✅ Server successfully started and running on port ${PORT}`);
-  console.log(`[${new Date().toISOString()}] ✅ Planning Poker server is ready to accept connections`);
+  logger.info(`✅ Server successfully started and running on port ${PORT}`);
+  logger.info('✅ Planning Poker server is ready to accept connections');
 });

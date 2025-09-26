@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { socketService } from '../services/socketService';
+import logger from '../utils/logger';
 
 export const useConnection = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -15,20 +16,20 @@ export const useConnection = () => {
       setIsConnecting(false);
       setConnectionError(null);
       setSocketId(socket.id);
-      console.log(`[${new Date().toISOString()}] [CONNECTION] Connected with ID: ${socket.id}`);
+      logger.info(`[CONNECTION] Connected with ID: ${socket.id}`);
     };
 
     const handleDisconnect = (reason) => {
       setIsConnected(false);
       setIsConnecting(false);
       setSocketId(null);
-      console.log(`[${new Date().toISOString()}] [CONNECTION] Disconnected, reason: ${reason}`);
+      logger.info(`[CONNECTION] Disconnected, reason: ${reason}`);
     };
 
     const handleReconnecting = (attemptNumber) => {
       setIsConnecting(true);
       setIsConnected(false);
-      console.log(`[${new Date().toISOString()}] [CONNECTION] Reconnecting... attempt ${attemptNumber}`);
+      logger.info(`[CONNECTION] Reconnecting... attempt ${attemptNumber}`);
     };
 
     const handleReconnect = (attemptNumber) => {
@@ -36,14 +37,14 @@ export const useConnection = () => {
       setIsConnecting(false);
       setConnectionError(null);
       setSocketId(socket.id);
-      console.log(`[${new Date().toISOString()}] [CONNECTION] Reconnected after ${attemptNumber} attempts`);
+      logger.info(`[CONNECTION] Reconnected after ${attemptNumber} attempts`);
     };
 
     const handleConnectError = (error) => {
       setIsConnected(false);
       setIsConnecting(false);
       setConnectionError(error.message || 'Connection failed');
-      console.error(`[${new Date().toISOString()}] [CONNECTION] Connection error:`, error);
+      logger.error(`[CONNECTION] Connection error:`, error);
     };
 
     // Set initial state

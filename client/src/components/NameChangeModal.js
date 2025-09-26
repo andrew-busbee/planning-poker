@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { socketService } from '../services/socketService';
 import ModalPortal from './ModalPortal';
+import logger from '../utils/logger';
 
 const NameChangeModal = ({ game, currentPlayer, onClose }) => {
   const [newName, setNewName] = useState(currentPlayer?.name || '');
@@ -28,7 +29,7 @@ const NameChangeModal = ({ game, currentPlayer, onClose }) => {
   // Clear timeout when player name changes (indicating success)
   useEffect(() => {
     if (timeoutId && currentPlayer?.name && currentPlayer.name !== newName.trim()) {
-      console.log(`[${new Date().toISOString()}] [MODAL] Player name changed, clearing timeout`);
+      logger.debug('[MODAL] Player name changed, clearing timeout');
       clearTimeout(timeoutId);
       setTimeoutId(null);
       setIsSubmitting(false);
@@ -67,20 +68,20 @@ const NameChangeModal = ({ game, currentPlayer, onClose }) => {
     setIsSubmitting(true);
     
     try {
-      console.log(`[${new Date().toISOString()}] [MODAL] Attempting to change player name from "${currentPlayer?.name}" to "${trimmedName}"`);
+      logger.info(`[MODAL] Attempting to change player name from "${currentPlayer?.name}" to "${trimmedName}"`);
       socketService.changePlayerName(game.id, trimmedName);
-      console.log(`[${new Date().toISOString()}] [MODAL] Socket event sent successfully`);
+        logger.debug('[MODAL] Socket event sent successfully');
       
       // Set a timeout fallback in case the server doesn't respond
       const timeout = setTimeout(() => {
-        console.log(`[${new Date().toISOString()}] [MODAL] Timeout waiting for server response, closing modal`);
+        logger.warn('[MODAL] Timeout waiting for server response, closing modal');
         setIsSubmitting(false);
         onClose();
       }, 5000); // 5 second timeout
       
       setTimeoutId(timeout);
     } catch (error) {
-      console.error('Error changing player name:', error);
+      logger.error('Error changing player name:', error);
       setErrors({ name: 'Failed to change name. Please try again.' });
       setIsSubmitting(false);
     }

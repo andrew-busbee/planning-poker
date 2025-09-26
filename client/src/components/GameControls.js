@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import logger from '../utils/logger';
 import CustomDeckEditor from './CustomDeckEditor';
 
 const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChange, onToggleRole }) => {
@@ -11,7 +12,7 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
     fetch('/api/decks')
       .then(response => response.json())
       .then(data => setAvailableDecks(data))
-      .catch(error => console.error('Error fetching decks:', error));
+      .catch(error => logger.error('Error fetching decks:', error));
   }, []);
 
   const canReveal = game.canReveal || false;

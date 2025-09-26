@@ -5,6 +5,7 @@ services:
       - "3001:3001"
     environment:
       - PORT=3001
+      - LOG_LEVEL=INFO  # DEBUG, INFO, WARN, ERROR, SILENT
     restart: unless-stopped
     volumes:
       - /path/to/data:/app/data

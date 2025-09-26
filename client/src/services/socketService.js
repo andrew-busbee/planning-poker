@@ -1,4 +1,5 @@
 import io from 'socket.io-client';
+import logger from '../utils/logger';
 
 // Socket.IO configuration
 const socketConfig = {
@@ -150,19 +151,19 @@ class SocketService {
 
     // Connection events
     this.socket.on('connect', () => {
-      console.log(`[${new Date().toISOString()}] [SOCKET] Connected to server, Socket ID: ${this.socket.id}`);
+      logger.info(`[SOCKET] Connected to server, Socket ID: ${this.socket.id}`);
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log(`[${new Date().toISOString()}] [SOCKET] Disconnected from server, reason: ${reason}`);
+      logger.info(`[SOCKET] Disconnected from server, reason: ${reason}`);
     });
 
     this.socket.on('reconnect', (attemptNumber) => {
-      console.log(`[${new Date().toISOString()}] [SOCKET] Reconnected after ${attemptNumber} attempts`);
+      logger.info(`[SOCKET] Reconnected after ${attemptNumber} attempts`);
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error(`[${new Date().toISOString()}] [SOCKET] Connection error:`, error);
+      logger.error(`[SOCKET] Connection error:`, error);
     });
   }
 }

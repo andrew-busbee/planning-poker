@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import logger from '../utils/logger';
 
 const GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {
   const [playerName, setPlayerName] = useState(prefillName);
@@ -11,7 +12,7 @@ const GameSetup = ({ gameId, onCreateGame, onJoinGame, prefillName = '' }) => {
     fetch('/api/decks')
       .then(response => response.json())
       .then(data => setAvailableDecks(data))
-      .catch(error => console.error('Error fetching decks:', error));
+      .catch(error => logger.error('Error fetching decks:', error));
   }, []);
 
   // Update playerName when prefillName changes

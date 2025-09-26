@@ -4,6 +4,7 @@ import WatcherCardBack from './WatcherCardBack';
 import AndrewWatcherCardBack from './AndrewWatcherCardBack';
 import Confetti from 'react-confetti';
 import NameChangeModal from './NameChangeModal';
+import logger from '../utils/logger';
 
 const PlayerCard = ({ player, vote, revealed, isCurrentPlayer, game }) => {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -27,7 +28,7 @@ const PlayerCard = ({ player, vote, revealed, isCurrentPlayer, game }) => {
   // Close modal when player name changes (indicating successful update)
   useEffect(() => {
     if (showNameModal && player?.name && previousName && player.name !== previousName) {
-      console.log(`[${new Date().toISOString()}] [PLAYERCARD] Player name changed from "${previousName}" to "${player.name}", closing modal`);
+      logger.info(`[PLAYERCARD] Player name changed from "${previousName}" to "${player.name}", closing modal`);
       setShowNameModal(false);
     }
     setPreviousName(player?.name);

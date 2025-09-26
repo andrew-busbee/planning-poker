@@ -4,6 +4,8 @@ import GameSetup from './components/GameSetup';
 import GameRoom from './components/GameRoom';
 import ThemeToggle from './components/ThemeToggle';
 import Footer from './components/Footer';
+import ConnectionIndicator from './components/ConnectionIndicator';
+import logger from './utils/logger';
 import './App.css';
 
 // Main App component that uses the GameProvider
@@ -32,11 +34,11 @@ const AppContent = () => {
     }
   };
 
-  console.log(`[${new Date().toISOString()}] Render check - gameId: ${game.gameId}, game: ${game.game ? 'exists' : 'null'}, isLoading: ${game.isLoading}`);
+  logger.debug(`Render check - gameId: ${game.gameId}, game: ${game.game ? 'exists' : 'null'}, isLoading: ${game.isLoading}`);
   
   // Show game room if we have a game
   if (game.gameId && game.game) {
-    console.log(`[${new Date().toISOString()}] Rendering GameRoom`);
+    logger.debug(`Rendering GameRoom`);
     return (
       <div>
         <div className="container">
@@ -74,7 +76,7 @@ const AppContent = () => {
 
   // Show loading state when auto-reconnecting
   if (game.isLoading) {
-    console.log(`[${new Date().toISOString()}] Rendering auto-reconnect loading state`);
+    logger.debug(`Rendering auto-reconnect loading state`);
     return (
       <div>
         <div className="container">
@@ -96,7 +98,7 @@ const AppContent = () => {
 
   // Show setup form for joining existing game (when we have gameId but no game data)
   if (game.gameId && !game.game && !game.isLoading) {
-    console.log(`[${new Date().toISOString()}] Rendering GameSetup for joining existing game with gameId: ${game.gameId}`);
+    logger.debug(`Rendering GameSetup for joining existing game with gameId: ${game.gameId}`);
     return (
       <div>
         <div className="container">
@@ -145,11 +147,10 @@ const AppContent = () => {
     );
   }
 
-  console.log(`[${new Date().toISOString()}] Rendering GameSetup with gameId: ${game.gameId}`);
+  logger.debug(`Rendering GameSetup with gameId: ${game.gameId}`);
   
   return (
     <div>
-      <ConnectionIndicator connection={connection} />
       <div className="container">
         <div className="flex justify-between align-center mb-4">
           <h1>Planning Poker</h1>
@@ -226,7 +227,7 @@ const AppContent = () => {
         </div>
       )}
       
-      <Footer />
+      <Footer connection={connection} />
     </div>
   );
 };

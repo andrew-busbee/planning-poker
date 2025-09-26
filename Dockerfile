@@ -37,6 +37,7 @@ COPY --from=build /app/client/build ./client/build
 
 # Copy server files
 COPY server.js ./
+COPY server/ ./server/
 
 # Create data directory as root first
 RUN mkdir -p /app/data

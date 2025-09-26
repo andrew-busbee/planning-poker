@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { socketService } from '../services/socketService';
+import logger from '../utils/logger';
 
 export const useGame = () => {
   const [game, setGame] = useState(null);
@@ -32,9 +33,9 @@ export const useGame = () => {
     try {
       localStorage.setItem('planningPokerGameData', JSON.stringify(data));
       sessionStorage.setItem('wasInGame', 'true');
-      console.log(`[${new Date().toISOString()}] [GAME] Saved game data:`, data);
+      logger.debug(`[GAME] Saved game data:`, data);
     } catch (error) {
-      console.error(`[${new Date().toISOString()}] [GAME] Failed to save game data:`, error);
+      logger.error(`[GAME] Failed to save game data:`, error);
     }
   }, []);
 
@@ -55,7 +56,7 @@ export const useGame = () => {
         }
       }
     } catch (error) {
-      console.error(`[${new Date().toISOString()}] [GAME] Failed to load game data:`, error);
+      logger.error(`[GAME] Failed to load game data:`, error);
       localStorage.removeItem('planningPokerGameData');
     }
     return null;
@@ -65,14 +66,14 @@ export const useGame = () => {
   const clearGameData = useCallback(() => {
     localStorage.removeItem('planningPokerGameData');
     sessionStorage.removeItem('wasInGame');
-    console.log(`[${new Date().toISOString()}] [GAME] Cleared saved game data`);
+    logger.debug('[GAME] Cleared saved game data');
   }, []);
 
   // Join game with timeout
   const joinGameWithTimeout = useCallback((gameData, timeoutMs = 10000) => {
     // Prevent duplicate join attempts at the socket level
     if (joinInProgressRef.current) {
-      console.log(`[${new Date().toISOString()}] [GAME] Join already in progress, skipping duplicate attempt`);
+      logger.debug('[GAME] Join already in progress, skipping duplicate attempt');
       return;
     }
     
@@ -87,12 +88,12 @@ export const useGame = () => {
       setError('Failed to join game - server did not respond. Please try again.');
       setIsLoading(false);
       joinInProgressRef.current = false;
-      console.log(`[${new Date().toISOString()}] [GAME] Join game timeout`);
+      logger.warn('[GAME] Join game timeout');
     }, timeoutMs);
 
     try {
       socketService.joinGame(gameData);
-      console.log(`[${new Date().toISOString()}] [GAME] Attempting to join game:`, gameData);
+      logger.info(`[GAME] Attempting to join game:`, gameData);
     } catch (error) {
       setError(error.message);
       setIsLoading(false);
@@ -114,7 +115,7 @@ export const useGame = () => {
     
     try {
       socketService.createGame(gameData);
-      console.log(`[${new Date().toISOString()}] [GAME] Creating game:`, gameData);
+      logger.info(`[GAME] Creating game:`, gameData);
     } catch (error) {
       setError(error.message);
       setIsLoading(false);
@@ -142,7 +143,7 @@ export const useGame = () => {
       try {
         socketService.leaveGame(gameId);
       } catch (error) {
-        console.error(`[${new Date().toISOString()}] [GAME] Error leaving game:`, error);
+        logger.error(`[GAME] Error leaving game:`, error);
       }
     }
     
@@ -156,14 +157,14 @@ export const useGame = () => {
     
     // Update URL to remove game parameter
     window.history.pushState({}, '', '/');
-    console.log(`[${new Date().toISOString()}] [GAME] Left game`);
+    logger.info('[GAME] Left game');
   }, [gameId, clearTimeouts, clearGameData]);
 
   // Auto-reconnect to saved game
   const autoReconnect = useCallback((savedGameData) => {
     if (!savedGameData) return;
     
-    console.log(`[${new Date().toISOString()}] [GAME] Auto-reconnecting to saved game:`, savedGameData);
+    logger.info(`[GAME] Auto-reconnecting to saved game:`, savedGameData);
     
     setPlayerName(savedGameData.playerName);
     setIsWatcher(savedGameData.isWatcher);
@@ -175,7 +176,7 @@ export const useGame = () => {
     autoReconnectTimeoutRef.current = setTimeout(() => {
       setError('Failed to reconnect to game. Please try joining manually.');
       setIsLoading(false);
-      console.log(`[${new Date().toISOString()}] [GAME] Auto-reconnect timeout`);
+      logger.warn('[GAME] Auto-reconnect timeout');
     }, 15000);
     
     // Try to join immediately if socket is connected
@@ -192,7 +193,7 @@ export const useGame = () => {
 
   // Auto-reconnect to URL game
   const autoReconnectToUrl = useCallback((urlGameId) => {
-    console.log(`[${new Date().toISOString()}] [GAME] Auto-reconnecting to URL game:`, urlGameId);
+    logger.info(`[GAME] Auto-reconnecting to URL game:`, urlGameId);
     
     setGameId(urlGameId);
     setIsLoading(true);
@@ -202,7 +203,7 @@ export const useGame = () => {
     autoReconnectTimeoutRef.current = setTimeout(() => {
       setError('Failed to reconnect to game. Please try joining manually.');
       setIsLoading(false);
-      console.log(`[${new Date().toISOString()}] [GAME] Auto-reconnect timeout`);
+      logger.warn('[GAME] Auto-reconnect timeout');
     }, 15000);
     
     // Use saved player name if available
@@ -226,7 +227,7 @@ export const useGame = () => {
     if (!socket) return;
 
     const handleGameCreated = (data) => {
-      console.log(`[${new Date().toISOString()}] [GAME] Game created:`, data);
+      logger.info(`[GAME] Game created:`, data);
       setGameId(data.gameId);
       setGame(data.game);
       setError('');
@@ -246,7 +247,7 @@ export const useGame = () => {
     };
 
     const handlePlayerJoined = (gameState) => {
-      console.log(`[${new Date().toISOString()}] [GAME] Player joined successfully:`, gameState);
+      logger.info(`[GAME] Player joined successfully:`, gameState);
       setGame(gameState);
       setError('');
       setIsLoading(false);
@@ -262,7 +263,7 @@ export const useGame = () => {
       if (currentSocketId) {
         const currentPlayer = gameState.players.find(p => p.id === currentSocketId);
         if (currentPlayer) {
-          console.log(`[${new Date().toISOString()}] [GAME] Player joined - syncing local isWatcher to: ${currentPlayer.isWatcher} for player: ${currentPlayer.name}`);
+          logger.debug(`[GAME] Player joined - syncing local isWatcher to: ${currentPlayer.isWatcher} for player: ${currentPlayer.name}`);
           setIsWatcher(currentPlayer.isWatcher);
           
           // Save complete game data to localStorage with the correct server state
@@ -275,7 +276,7 @@ export const useGame = () => {
             });
           }
         } else {
-          console.log(`[${new Date().toISOString()}] [GAME] Player joined - could not find current player with socket ID: ${currentSocketId}`);
+          logger.warn(`[GAME] Player joined - could not find current player with socket ID: ${currentSocketId}`);
           // Fallback: save with current local state if we can't find the player
           if (gameId && playerName) {
             saveGameData({
@@ -287,7 +288,7 @@ export const useGame = () => {
           }
         }
       } else {
-        console.log(`[${new Date().toISOString()}] [GAME] Player joined - no socket ID available`);
+        logger.warn('[GAME] Player joined - no socket ID available');
         // Fallback: save with current local state if no socket ID
         if (gameId && playerName) {
           saveGameData({
@@ -324,7 +325,7 @@ export const useGame = () => {
       if (currentSocketId) {
         const currentPlayer = gameState.players.find(p => p.id === currentSocketId);
         if (currentPlayer) {
-          console.log(`[${new Date().toISOString()}] [GAME] Role toggle - updating local isWatcher to: ${currentPlayer.isWatcher} for player: ${currentPlayer.name}`);
+          logger.debug(`[GAME] Role toggle - updating local isWatcher to: ${currentPlayer.isWatcher} for player: ${currentPlayer.name}`);
           setIsWatcher(currentPlayer.isWatcher);
           
           // Update localStorage with the new role
@@ -337,10 +338,10 @@ export const useGame = () => {
             });
           }
         } else {
-          console.log(`[${new Date().toISOString()}] [GAME] Role toggle - could not find current player with socket ID: ${currentSocketId}`);
+          logger.warn(`[GAME] Role toggle - could not find current player with socket ID: ${currentSocketId}`);
         }
       } else {
-        console.log(`[${new Date().toISOString()}] [GAME] Role toggle - no socket ID available`);
+        logger.warn('[GAME] Role toggle - no socket ID available');
       }
     };
 
@@ -353,7 +354,7 @@ export const useGame = () => {
       if (currentSocketId) {
         const currentPlayer = gameState.players.find(p => p.id === currentSocketId);
         if (currentPlayer) {
-          console.log(`[${new Date().toISOString()}] [GAME] Player left - syncing local isWatcher to: ${currentPlayer.isWatcher} for player: ${currentPlayer.name}`);
+          logger.debug(`[GAME] Player left - syncing local isWatcher to: ${currentPlayer.isWatcher} for player: ${currentPlayer.name}`);
           setIsWatcher(currentPlayer.isWatcher);
           
           // Update localStorage with the correct server state
@@ -366,10 +367,10 @@ export const useGame = () => {
             });
           }
         } else {
-          console.log(`[${new Date().toISOString()}] [GAME] Player left - could not find current player with socket ID: ${currentSocketId}`);
+          logger.warn(`[GAME] Player left - could not find current player with socket ID: ${currentSocketId}`);
         }
       } else {
-        console.log(`[${new Date().toISOString()}] [GAME] Player left - no socket ID available`);
+        logger.warn('[GAME] Player left - no socket ID available');
       }
     };
 
@@ -389,7 +390,7 @@ export const useGame = () => {
       if (currentSocketId) {
         const currentPlayer = gameState.players.find(p => p.id === currentSocketId);
         if (currentPlayer && currentPlayer.name !== playerName) {
-          console.log(`[${new Date().toISOString()}] [GAME] Player name changed locally: ${playerName} -> ${currentPlayer.name}`);
+          logger.info(`[GAME] Player name changed locally: ${playerName} -> ${currentPlayer.name}`);
           setPlayerName(currentPlayer.name);
           
           // Update localStorage with the new name
@@ -406,7 +407,7 @@ export const useGame = () => {
     };
 
     const handleError = (error) => {
-      console.log(`[${new Date().toISOString()}] [GAME] Socket error received:`, error.message);
+      logger.error(`[GAME] Socket error received:`, error.message);
       setError(error.message);
       setIsLoading(false);
       clearTimeouts();

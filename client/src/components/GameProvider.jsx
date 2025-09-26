@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect } from 'react';
 import { useConnection } from '../hooks/useConnection';
 import { useGame } from '../hooks/useGame';
 import { socketService } from '../services/socketService';
+import logger from '../utils/logger';
 
 const GameContext = createContext();
 
@@ -33,17 +34,17 @@ export const GameProvider = ({ children }) => {
     const urlGameId = urlParams.get('game');
     
     if (urlGameId) {
-      console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] URL has game ID: ${urlGameId}`);
+      logger.debug(`[GAME_PROVIDER] URL has game ID: ${urlGameId}`);
       
       const savedGameData = game.loadGameData();
       
       if (savedGameData && savedGameData.gameId === urlGameId) {
         // We have matching saved data - auto-reconnect to same game
-        console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Auto-reconnecting to saved game`);
+        logger.info('[GAME_PROVIDER] Auto-reconnecting to saved game');
         game.autoReconnect(savedGameData);
       } else {
         // Different game or no saved data - always show join game page
-        console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Different game or no saved data, showing setup form for URL game`);
+        logger.info('[GAME_PROVIDER] Different game or no saved data, showing setup form for URL game');
         game.setGameIdForJoin(urlGameId);
       }
     }
@@ -61,7 +62,7 @@ export const GameProvider = ({ children }) => {
         const savedGameData = game.loadGameData();
         
         if (savedGameData && savedGameData.gameId === game.gameId) {
-          console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Connected, auto-rejoining saved game`);
+          logger.info('[GAME_PROVIDER] Connected, auto-rejoining saved game');
           setTimeout(() => {
             game.joinGame({
               gameId: savedGameData.gameId,
@@ -71,12 +72,12 @@ export const GameProvider = ({ children }) => {
           }, 200);
         } else {
           // Different game or no saved data - stop auto-rejoin, show setup form
-          console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Connected, but different game or no saved data - stopping auto-rejoin`);
+          logger.info('[GAME_PROVIDER] Connected, but different game or no saved data - stopping auto-rejoin');
           game.setIsLoading(false);
         }
       } else {
         // No URL game parameter, clear the game state to prevent infinite loops
-        console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] No URL game parameter, clearing game state`);
+        logger.debug('[GAME_PROVIDER] No URL game parameter, clearing game state');
         game.clearGameData();
         game.leaveGame();
       }
@@ -86,12 +87,12 @@ export const GameProvider = ({ children }) => {
   // Handle browser navigation (back/forward buttons)
   useEffect(() => {
     const handlePopState = (event) => {
-      console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] Browser navigation detected`);
+      logger.debug('[GAME_PROVIDER] Browser navigation detected');
       const urlParams = new URLSearchParams(window.location.search);
       const urlGameId = urlParams.get('game');
       
       if (urlGameId !== game.gameId) {
-        console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] URL changed, reloading page`);
+        logger.info('[GAME_PROVIDER] URL changed, reloading page');
         // Clear current game state and reload to handle the new URL properly
         game.clearGameData();
         window.location.reload();
@@ -118,7 +119,7 @@ export const GameProvider = ({ children }) => {
           const savedGameData = game.loadGameData();
           
           if (savedGameData && savedGameData.gameId === game.gameId) {
-            console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] App came to foreground, auto-rejoining saved game`);
+            logger.info('[GAME_PROVIDER] App came to foreground, auto-rejoining saved game');
             game.joinGame({
               gameId: savedGameData.gameId,
               playerName: savedGameData.playerName,
@@ -129,7 +130,7 @@ export const GameProvider = ({ children }) => {
             const savedPlayerName = localStorage.getItem('planningPokerPlayerName');
             
             if (savedPlayerName && savedPlayerName.trim()) {
-              console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] App came to foreground, auto-rejoining URL game with saved name`);
+              logger.info('[GAME_PROVIDER] App came to foreground, auto-rejoining URL game with saved name');
               game.joinGame({
                 gameId: game.gameId,
                 playerName: savedPlayerName,
@@ -137,13 +138,13 @@ export const GameProvider = ({ children }) => {
               });
             } else {
               // No saved name - stop auto-rejoin, show setup form
-              console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] App came to foreground, but no saved name - stopping auto-rejoin`);
+              logger.info('[GAME_PROVIDER] App came to foreground, but no saved name - stopping auto-rejoin');
               game.setIsLoading(false);
             }
           }
         } else {
           // No URL game parameter, clear the game state to prevent infinite loops
-          console.log(`[${new Date().toISOString()}] [GAME_PROVIDER] App came to foreground, no URL game parameter, clearing game state`);
+          logger.debug('[GAME_PROVIDER] App came to foreground, no URL game parameter, clearing game state');
           game.clearGameData();
           game.leaveGame();
         }
