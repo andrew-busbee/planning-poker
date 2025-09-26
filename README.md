@@ -93,6 +93,7 @@ services:
       - "3001:3001"
     environment:
       - PORT=3001
+      - LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARN, ERROR, SILENT
     restart: unless-stopped
     volumes:
       - /path/to/data:/app/data
@@ -115,6 +116,7 @@ docker run -d \
   --name planning-poker \
   -p 3001:3001 \
   -e PORT=3001 \
+  -e LOG_LEVEL=INFO \
   --restart unless-stopped \
   -v /path/to/data:/app/data \
   andrewbusbee/planning-poker:latest
