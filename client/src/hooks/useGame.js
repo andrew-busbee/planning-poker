@@ -257,14 +257,46 @@ export const useGame = () => {
         window.history.pushState({}, '', `?game=${gameId}`);
       }
       
-      // Save complete game data to localStorage
-      if (gameId && playerName) {
-        saveGameData({
-          gameId: gameId,
-          playerName: playerName,
-          isWatcher: isWatcher,
-          lastActivity: new Date().toISOString()
-        });
+      // Sync local isWatcher state with server state
+      const currentSocketId = socketService.getSocket()?.id;
+      if (currentSocketId) {
+        const currentPlayer = gameState.players.find(p => p.id === currentSocketId);
+        if (currentPlayer) {
+          console.log(`[${new Date().toISOString()}] [GAME] Player joined - syncing local isWatcher to: ${currentPlayer.isWatcher} for player: ${currentPlayer.name}`);
+          setIsWatcher(currentPlayer.isWatcher);
+          
+          // Save complete game data to localStorage with the correct server state
+          if (gameId && playerName) {
+            saveGameData({
+              gameId: gameId,
+              playerName: playerName,
+              isWatcher: currentPlayer.isWatcher, // Use server state, not local state
+              lastActivity: new Date().toISOString()
+            });
+          }
+        } else {
+          console.log(`[${new Date().toISOString()}] [GAME] Player joined - could not find current player with socket ID: ${currentSocketId}`);
+          // Fallback: save with current local state if we can't find the player
+          if (gameId && playerName) {
+            saveGameData({
+              gameId: gameId,
+              playerName: playerName,
+              isWatcher: isWatcher,
+              lastActivity: new Date().toISOString()
+            });
+          }
+        }
+      } else {
+        console.log(`[${new Date().toISOString()}] [GAME] Player joined - no socket ID available`);
+        // Fallback: save with current local state if no socket ID
+        if (gameId && playerName) {
+          saveGameData({
+            gameId: gameId,
+            playerName: playerName,
+            isWatcher: isWatcher,
+            lastActivity: new Date().toISOString()
+          });
+        }
       }
     };
 
@@ -287,15 +319,58 @@ export const useGame = () => {
     const handleRoleToggled = (gameState) => {
       setGame(gameState);
       // Update isWatcher state for current player
-      const currentPlayer = gameState.players.find(p => p.id === socket.id);
-      if (currentPlayer) {
-        setIsWatcher(currentPlayer.isWatcher);
+      // Find the current player by matching the socket ID from the socket service
+      const currentSocketId = socketService.getSocket()?.id;
+      if (currentSocketId) {
+        const currentPlayer = gameState.players.find(p => p.id === currentSocketId);
+        if (currentPlayer) {
+          console.log(`[${new Date().toISOString()}] [GAME] Role toggle - updating local isWatcher to: ${currentPlayer.isWatcher} for player: ${currentPlayer.name}`);
+          setIsWatcher(currentPlayer.isWatcher);
+          
+          // Update localStorage with the new role
+          if (gameId && playerName) {
+            saveGameData({
+              gameId: gameId,
+              playerName: playerName,
+              isWatcher: currentPlayer.isWatcher, // Use server state
+              lastActivity: new Date().toISOString()
+            });
+          }
+        } else {
+          console.log(`[${new Date().toISOString()}] [GAME] Role toggle - could not find current player with socket ID: ${currentSocketId}`);
+        }
+      } else {
+        console.log(`[${new Date().toISOString()}] [GAME] Role toggle - no socket ID available`);
       }
     };
 
 
     const handlePlayerLeft = (gameState) => {
       setGame(gameState);
+      
+      // Sync local isWatcher state with server state when a player leaves
+      const currentSocketId = socketService.getSocket()?.id;
+      if (currentSocketId) {
+        const currentPlayer = gameState.players.find(p => p.id === currentSocketId);
+        if (currentPlayer) {
+          console.log(`[${new Date().toISOString()}] [GAME] Player left - syncing local isWatcher to: ${currentPlayer.isWatcher} for player: ${currentPlayer.name}`);
+          setIsWatcher(currentPlayer.isWatcher);
+          
+          // Update localStorage with the correct server state
+          if (gameId && playerName) {
+            saveGameData({
+              gameId: gameId,
+              playerName: playerName,
+              isWatcher: currentPlayer.isWatcher, // Use server state, not local state
+              lastActivity: new Date().toISOString()
+            });
+          }
+        } else {
+          console.log(`[${new Date().toISOString()}] [GAME] Player left - could not find current player with socket ID: ${currentSocketId}`);
+        }
+      } else {
+        console.log(`[${new Date().toISOString()}] [GAME] Player left - no socket ID available`);
+      }
     };
 
     const handleCustomDeckCreated = (gameState) => {

@@ -513,7 +513,12 @@ io.on('connection', (socket) => {
     if (existingPlayer) {
       // Update existing player info and last seen
       existingPlayer.name = data.playerName || existingPlayer.name;
-      existingPlayer.isWatcher = data.isWatcher;
+      // Only update isWatcher if explicitly provided and different from current state
+      // This prevents reconnections from accidentally changing player roles
+      if (data.isWatcher !== undefined && data.isWatcher !== existingPlayer.isWatcher) {
+        existingPlayer.isWatcher = data.isWatcher;
+        console.log(`[${new Date().toISOString()}] Player role updated on reconnection: ${socket.id}, Player: ${existingPlayer.name}, New role: ${data.isWatcher ? 'Watcher' : 'Player'}, Game: ${data.gameId}`);
+      }
       existingPlayer.lastSeen = new Date();
       existingPlayer.hasVoted = false; // Reset vote status on reconnection
       console.log(`[${new Date().toISOString()}] Player reconnected: ${socket.id}, Player: ${existingPlayer.name}, Game: ${data.gameId}`);
@@ -733,6 +738,9 @@ io.on('connection', (socket) => {
       console.log(`[${new Date().toISOString()}] [ERROR] Role toggle failed: ${socket.id}, Player not found in game: ${data.gameId}`);
       return;
     }
+
+    // Log current state before toggle
+    console.log(`[${new Date().toISOString()}] Role toggle request: ${socket.id}, Player: ${player.name}, Current role: ${player.isWatcher ? 'Watcher' : 'Player'}, Game: ${data.gameId}`);
 
     // Toggle role
     player.isWatcher = !player.isWatcher;
