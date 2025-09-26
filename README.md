@@ -54,19 +54,19 @@ Special cards:
 
 | **Light Mode** | **Dark Mode** |
 | -------------- | -------------- |
-| ![New Game Menu - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/new_game_light_mode.png) | ![New Game Menu - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/new_game_dark_mode.png) |
+| ![New Game Menu - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/new_game_light_mode1.2.2.png) | ![New Game Menu - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/new_game_dark_mode1.2.2.png) |
 
 ### Player View
 
 | **Light Mode** | **Dark Mode** |
 | -------------- | -------------- |
-| ![Player View - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/player_light_mode.png) | ![Player View - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/player_dark_mode.png) |
+| ![Player View - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/player_light_mode1.2.2.png) | ![Player View - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/player_dark_mode1.2.2.png) |
 
 ### Watcher View
 
 | **Light Mode** | **Dark Mode** |
 | -------------- | -------------- |
-| ![Watcher View - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_light_mode.png) | ![Watcher View - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_dark_mode.png) |
+| ![Watcher View - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_light_mode1.2.2.png) | ![Watcher View - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_dark_mode1.2.2.png) |
 
 
 ## Quick Start with Docker
