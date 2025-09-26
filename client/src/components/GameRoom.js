@@ -131,13 +131,14 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
         onComplete={() => gameStore.setShowConfetti(false)} 
       />
       
-      <ThemeToggle />
-      
       <div className="flex justify-between align-center mb-4">
         <h1>Planning Poker</h1>
-        <button onClick={copyGameUrl} className="btn btn-success">
-          Share Link
-        </button>
+        <div className="flex align-center gap-3">
+          <button onClick={copyGameUrl} className="btn btn-success btn-share">
+            Share Link
+          </button>
+          <ThemeToggle inline={true} />
+        </div>
       </div>
 
       {/* Players with Cards */}

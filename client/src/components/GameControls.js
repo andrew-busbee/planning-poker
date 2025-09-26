@@ -27,7 +27,7 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
             <button
               onClick={onRevealVotes}
               disabled={!canReveal}
-              className={`btn ${canReveal ? 'btn-success' : 'btn-secondary'}`}
+              className={`btn btn-mobile-full ${canReveal ? 'btn-success' : 'btn-secondary'}`}
             >
               {canReveal ? 'Reveal Votes' : 'Waiting for votes...'}
             </button>
@@ -47,7 +47,7 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
           onClick={onToggleRole}
           className="btn btn-warning"
         >
-          {isWatcher ? 'Switch to Player' : 'Switch to Watcher'}
+          {isWatcher ? '♠️ Switch to Player ♣️' : 'Switch to Watcher 👀'}
         </button>
       </div>
 
@@ -99,7 +99,7 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
                     setIsEditingCustom(true);
                     setShowCustomDeckEditor(true);
                   }}
-                  className="btn btn-warning"
+                  className="btn btn-warning btn-mobile-full"
                 >
                   Edit Custom Deck
                 </button>
@@ -109,7 +109,7 @@ const GameControls = ({ game, isWatcher, onRevealVotes, onResetGame, onDeckChang
                     setIsEditingCustom(false);
                     setShowCustomDeckEditor(true);
                   }}
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-mobile-full"
                 >
                   Create Custom Deck
                 </button>

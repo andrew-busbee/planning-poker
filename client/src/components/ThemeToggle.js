@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const ThemeToggle = () => {
+const ThemeToggle = ({ inline = false }) => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ const ThemeToggle = () => {
 
   return (
     <button 
-      className="theme-toggle" 
+      className={inline ? "theme-toggle-inline" : "theme-toggle"} 
       onClick={toggleTheme}
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >

@@ -78,24 +78,14 @@ const AppContent = () => {
     return (
       <div>
         <div className="container">
-          <ThemeToggle />
+          <div className="flex justify-between align-center mb-4">
+            <h1>Planning Poker</h1>
+            <ThemeToggle inline={true} />
+          </div>
           
           <div className="text-center mb-4">
-            <h1>Planning Poker</h1>
             <div className="card" style={{ background: '#d1ecf1', color: '#0c5460', border: '1px solid #bee5eb' }}>
-              <p>🔄 Reconnecting to your game...</p>
-              <p>Please wait while we reconnect you to game <strong>{game.gameId}</strong>{game.playerName && ` as ${game.playerName}`}</p>
-              <button 
-                onClick={() => {
-                  console.log(`[${new Date().toISOString()}] [CLIENT] Manual cancel auto-reconnect`);
-                  game.clearGameData();
-                  game.leaveGame();
-                }}
-                className="btn btn-sm"
-                style={{ marginTop: '10px', backgroundColor: '#dc3545', color: 'white' }}
-              >
-                Cancel Auto-Reconnect
-              </button>
+              <p>🔄 Please wait while you reconnect to the game...</p>
             </div>
           </div>
         </div>
@@ -109,10 +99,12 @@ const AppContent = () => {
   return (
     <div>
       <div className="container">
-        <ThemeToggle />
-        
-        <div className="text-center mb-4">
+        <div className="flex justify-between align-center mb-4">
           <h1>Planning Poker</h1>
+          <ThemeToggle inline={true} />
+        </div>
+        
+        <div className="mb-4">
           {process.env.NODE_ENV === 'development' && (
             <div className="mb-3">
               <button 
