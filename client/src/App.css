@@ -439,6 +439,7 @@
 .footer-left {
   display: flex;
   align-items: center;
+  gap: 16px;
 }
 
 .footer-center {
@@ -452,7 +453,8 @@
 }
 
 .footer-center .copyright {
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: normal;
   color: var(--text-muted);
   opacity: 0.8;
 }

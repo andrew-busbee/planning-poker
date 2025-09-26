@@ -108,19 +108,20 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
 
   const isConsensus = checkConsensus();
 
+  // Track previous consensus state to detect changes
+  const prevConsensusRef = useRef(false);
+  
   // Trigger confetti on consensus
   useEffect(() => {
-    if (isConsensus && game.revealed) {
+    const wasConsensus = prevConsensusRef.current;
+    const isNowConsensus = isConsensus && game.revealed;
+    
+    // Only trigger confetti when consensus changes from false to true
+    if (!wasConsensus && isNowConsensus) {
       gameStore.setShowConfetti(true);
-      gameStore.setConsensusPulse(true);
-      
-      // Stop pulse after 5 seconds
-      const timer = setTimeout(() => {
-        gameStore.setConsensusPulse(false);
-      }, 5000);
-      
-      return () => clearTimeout(timer);
     }
+    
+    prevConsensusRef.current = isNowConsensus;
   }, [isConsensus, game.revealed, gameStore]);
 
 
@@ -152,8 +153,7 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
             borderRadius: '8px',
             textAlign: 'center',
             marginBottom: '16px',
-            fontWeight: 'bold',
-            animation: gameStore.consensusPulse ? 'pulse 2s infinite' : 'none'
+            fontWeight: 'bold'
           }}>
             🎉🎉 Consensus Reached! 🎉🎉
           </div>

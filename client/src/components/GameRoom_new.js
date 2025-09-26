@@ -150,8 +150,7 @@ const GameRoom = ({ game, playerName, isWatcher, socketId, onToggleRole }) => {
             borderRadius: '8px',
             textAlign: 'center',
             marginBottom: '16px',
-            fontWeight: 'bold',
-            animation: gameStore.consensusPulse ? 'pulse 2s infinite' : 'none'
+            fontWeight: 'bold'
           }}>
             🎉🎉 Consensus Reached! 🎉🎉
           </div>

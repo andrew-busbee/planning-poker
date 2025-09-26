@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { GameProvider, useGameContext } from './components/GameProvider';
 import GameSetup from './components/GameSetup';
 import GameRoom from './components/GameRoom';
@@ -11,6 +11,23 @@ import './App.css';
 // Main App component that uses the GameProvider
 const AppContent = () => {
   const { connection, game } = useGameContext();
+
+  // Page Visibility API - Log when user backgrounds/foregrounds the app
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        logger.info('[APP] User backgrounded the app');
+      } else if (document.visibilityState === 'visible') {
+        logger.info('[APP] User returned to the app');
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Handle create game
   const handleCreateGame = (data) => {

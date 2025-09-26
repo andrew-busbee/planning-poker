@@ -6,7 +6,6 @@ export const useGameStore = () => {
   // UI state
   const [selectedCard, setSelectedCard] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [consensusPulse, setConsensusPulse] = useState(false);
 
   // Game actions
   const castVote = useCallback((gameId, card) => {
@@ -20,6 +19,7 @@ export const useGameStore = () => {
   const resetGame = useCallback((gameId) => {
     socketService.resetGame(gameId);
     setSelectedCard(null);
+    setShowConfetti(false);
   }, []);
 
   const changeDeck = useCallback((gameId, deckType) => {
@@ -43,19 +43,16 @@ export const useGameStore = () => {
   const resetGameState = useCallback(() => {
     setSelectedCard(null);
     setShowConfetti(false);
-    setConsensusPulse(false);
   }, []);
 
   return {
     // State
     selectedCard,
     showConfetti,
-    consensusPulse,
     
     // State setters
     setSelectedCard,
     setShowConfetti,
-    setConsensusPulse,
     
     // Actions
     castVote,

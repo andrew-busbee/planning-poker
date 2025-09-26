@@ -98,8 +98,7 @@ const GameStatistics = ({ votes, players, deck }) => {
           color: 'white',
           borderRadius: '8px',
           textAlign: 'center',
-          fontWeight: 'bold',
-          animation: 'pulse 2s infinite'
+          fontWeight: 'bold'
         }}>
           🎉 Consensus Reached!
         </div>
