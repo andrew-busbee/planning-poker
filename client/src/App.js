@@ -4,7 +4,6 @@ import GameSetup from './components/GameSetup';
 import GameRoom from './components/GameRoom';
 import ThemeToggle from './components/ThemeToggle';
 import Footer from './components/Footer';
-import ConnectionIndicator from './components/ConnectionIndicator';
 import './App.css';
 
 // Main App component that uses the GameProvider
@@ -40,7 +39,6 @@ const AppContent = () => {
     console.log(`[${new Date().toISOString()}] Rendering GameRoom`);
     return (
       <div>
-        <ConnectionIndicator connection={connection} />
         <div className="container">
           <GameRoom
             game={game.game}
@@ -69,7 +67,7 @@ const AppContent = () => {
           </div>
         )}
         
-        <Footer />
+        <Footer connection={connection} />
       </div>
     );
   }
@@ -79,7 +77,6 @@ const AppContent = () => {
     console.log(`[${new Date().toISOString()}] Rendering auto-reconnect loading state`);
     return (
       <div>
-        <ConnectionIndicator connection={connection} />
         <div className="container">
           <div className="flex justify-between align-center mb-4">
             <h1>Planning Poker</h1>
@@ -92,7 +89,7 @@ const AppContent = () => {
             </div>
           </div>
         </div>
-        <Footer />
+        <Footer connection={connection} />
       </div>
     );
   }
@@ -102,7 +99,6 @@ const AppContent = () => {
     console.log(`[${new Date().toISOString()}] Rendering GameSetup for joining existing game with gameId: ${game.gameId}`);
     return (
       <div>
-        <ConnectionIndicator connection={connection} />
         <div className="container">
           <div className="flex justify-between align-center mb-4">
             <h1>Planning Poker</h1>
@@ -144,7 +140,7 @@ const AppContent = () => {
           />
         </div>
         
-        <Footer />
+        <Footer connection={connection} />
       </div>
     );
   }

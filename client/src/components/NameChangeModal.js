@@ -98,13 +98,6 @@ const NameChangeModal = ({ game, currentPlayer, onClose }) => {
     // Don't prevent default - we need form submissions to work
   };
 
-  // Handle overlay click more carefully
-  const handleOverlayClick = (e) => {
-    // Only close if clicking directly on the overlay, not on any child elements
-    if (e.target === e.currentTarget) {
-      handleCancel();
-    }
-  };
 
   // Prevent any mouse events from affecting the modal
   const handleMouseEvents = (e) => {
@@ -120,8 +113,7 @@ const NameChangeModal = ({ game, currentPlayer, onClose }) => {
   return (
     <ModalPortal>
       <div 
-        className="modal-overlay" 
-        onClick={handleOverlayClick}
+        className="modal-overlay"
         onMouseMove={handleMouseEvents}
         onMouseEnter={handleMouseEvents}
         onMouseLeave={handleMouseEvents}
