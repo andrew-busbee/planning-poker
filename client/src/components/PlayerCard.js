@@ -37,12 +37,14 @@ const PlayerCard = ({ player, vote, revealed, isCurrentPlayer, game }) => {
   const getStatusClass = () => {
     if (player.isWatcher) return 'watcher';
     if (player.hasVoted) return 'voted';
+    if (revealed) return 'no-vote';
     return 'waiting';
   };
 
   const getStatusText = () => {
     if (player.isWatcher) return '👁️ Watcher';
     if (player.hasVoted) return '✅ Voted';
+    if (revealed) return '❌ No Vote';
     return '⏳ Waiting...';
   };
 

@@ -443,6 +443,10 @@ code {
   color: var(--warning-color);
 }
 
+.player-status.no-vote {
+  color: #dc3545;
+}
+
 .player-status.watcher {
   color: var(--text-muted);
 }
