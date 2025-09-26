@@ -125,6 +125,45 @@ docker run -d \
 
 ### Environment Variables
 - `PORT` - Server port (default: 3001)
+- `LOG_LEVEL` - Application logging level (default: INFO).  
+  See [Log Level Descriptions](#log-level-descriptions) for details.
+
+## Log Level Descriptions
+
+### DEBUG
+- Most verbose logging level  
+- Shows detailed debugging information including file paths, connection details, and internal state  
+- Includes data directory setup, file operations, and connection cleanup details  
+- Useful for development and troubleshooting issues  
+- **Example:** `Data directory: /app/data, Connection details: socket123, Transport: websocket`
+
+### INFO (default)
+- Standard operational logging (recommended for production)  
+- Shows important application events and status updates  
+- Includes server startup, game creation/joining, player actions, and system metrics  
+- Provides good visibility into application behavior without overwhelming detail  
+- **Example:** `Game created and saved to disk: abc123, Player joined: John Doe`
+
+### WARN
+- Warning messages for potential issues  
+- Highlights concerning situations that don't stop the application  
+- Includes high latency connections, corrupted game data, and cleanup operations  
+- Indicates issues that should be monitored but aren't critical  
+- **Example:** `High latency detected: socket123, Latency: 2500ms, Failed to deserialize game data`
+
+### ERROR
+- Error conditions that need attention  
+- Shows critical errors that affect functionality  
+- Includes file system errors, connection failures, and data corruption  
+- Indicates problems that may impact user experience or data integrity  
+- **Example:** `Cannot write to data directory, Game not found: invalid-id`
+
+### SILENT
+- No logging output  
+- Completely disables all logging  
+- Useful for environments where logging is handled externally  
+- Minimal resource usage but no visibility into application behavior
+
 
 ## Production Deployment Considerations
 - Use a reverse proxy (nginx, Traefik) for SSL termination
