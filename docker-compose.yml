@@ -1,6 +1,6 @@
 services:
   planning-poker:
-    image: andrewbusbee/planning-poker:latest
+    image: ghcr.io/andrew-busbee/planning-poker:latest
     ports:
       - "3001:3001"
     environment:
@@ -8,7 +8,7 @@ services:
       - LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARN, ERROR, SILENT
     restart: unless-stopped
     volumes:
-      - /path/to/data:/app/data
+      - data:/app/data
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/decks', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
@@ -16,3 +16,5 @@ services:
       retries: 3
       start_period: 40s
 
+volumes:
+  data:

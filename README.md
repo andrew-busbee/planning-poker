@@ -79,16 +79,11 @@ The Docker image is published as a multi-arch build and works on:
 The easiest way to deploy the application is with Docker Compose.  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck.
 
 ### Docker-compose (Recommended)
-1. Create a folder to store the games.  Replace /path/to/data with your folder path.
-```bash
-mkdir -p /path/to/data
-sudo chown -R 1000:1000 /path/to/data
-```
-2. Create a docker-compose.yml with the following content (replace /path/to/data with what you set above).  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck.
+1. Create a docker-compose.yml with the following content (replace /path/to/data with what you set above).  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck.
 ```yml
 services:
   planning-poker:
-    image: andrewbusbee/planning-poker:latest
+    image: ghcr.io/andrew-busbee/planning-poker:latest
     ports:
       - "3001:3001"
     environment:
@@ -96,21 +91,21 @@ services:
       - LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARN, ERROR, SILENT
     restart: unless-stopped
     volumes:
-      - /path/to/data:/app/data
+      - data:/app/data
+
+volumes:
+  data:      
 ```
 
-3. Start the container:
+2. Start the container:
 ```bash
 docker compose up -d
 ```
 
+3. Open http://localhost:3001 in your browser.
+
 ### Docker
-1. Create a folder to store the games.  Replace /path/to/data with your folder path.
-```bash
-mkdir -p /path/to/data
-sudo chown -R 1000:1000 /path/to/data
-```
-2. Run the container (replace /path/to/data with what you set above)
+1. Run the container (replace /path/to/data with what you set above)
 ```bash
 docker run -d \
   --name planning-poker \
@@ -118,10 +113,10 @@ docker run -d \
   -e PORT=3001 \
   -e LOG_LEVEL=INFO \
   --restart unless-stopped \
-  -v /path/to/data:/app/data \
-  andrewbusbee/planning-poker:latest
+  -v data:/app/data \
+  ghcr.io/andrew-busbee/planning-poker:latest
 ```
-3. Open http://localhost:3001 in your browser.
+2. Open http://localhost:3001 in your browser.
 
 ### Environment Variables
 - `PORT` - Server port (default: 3001)
