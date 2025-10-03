@@ -1,6 +1,6 @@
 services:
   planning-poker:
-    image: ghcr.io/andrew-busbee/planning-poker:latest
+    image: ghcr.io/andrewbusbee/planning-poker:latest
     ports:
       - "3001:3001"
     environment:

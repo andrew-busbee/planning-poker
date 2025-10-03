@@ -1,5 +1,5 @@
 [33mcommit 616895fafdf76a95e5f6ae8b9ded6362cdc3bc80[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
-Author: Andrew Busbee <21376025+andrew-busbee@users.noreply.github.com>
+Author: Andrew Busbee <21376025+andrewbusbee@users.noreply.github.com>
 Date:   Thu Sep 25 17:40:13 2025 -0500
 
     UI and game functionality fixes
@@ -13,9 +13,12 @@ Date:   Thu Sep 25 17:40:13 2025 -0500
  [m
    const addCardSlot = () => {[m
 [31m-    setCards([...cards, '']);[m
-[32m+[m[32m    if (cards.length < 15) {[m[41m[m
-[32m+[m[32m      setCards([...cards, '']);[m[41m[m
-[32m+[m[32m    }[m[41m[m
+[32m+[m[32m    if (cards.length < 15) {[m[41m
+[m
+[32m+[m[32m      setCards([...cards, '']);[m[41m
+[m
+[32m+[m[32m    }[m[41m
+[m
    };[m
  [m
    const removeCardSlot = (index) => {[m
@@ -23,19 +26,27 @@ Date:   Thu Sep 25 17:40:13 2025 -0500
      [m
      if (!deckName.trim()) {[m
        newErrors.deckName = 'Deck name is required';[m
-[32m+[m[32m    } else if (deckName.length > 15) {[m[41m[m
-[32m+[m[32m      newErrors.deckName = 'Deck name must be 15 characters or less';[m[41m[m
+[32m+[m[32m    } else if (deckName.length > 15) {[m[41m
+[m
+[32m+[m[32m      newErrors.deckName = 'Deck name must be 15 characters or less';[m[41m
+[m
      }[m
      [m
      const validCards = cards.filter(card => card.trim() !== '');[m
      if (validCards.length < 2) {[m
        newErrors.cards = 'At least 2 cards are required';[m
-[32m+[m[32m    } else {[m[41m[m
-[32m+[m[32m      // Check if any card exceeds 15 characters[m[41m[m
-[32m+[m[32m      const invalidCards = validCards.filter(card => card.length > 15);[m[41m[m
-[32m+[m[32m      if (invalidCards.length > 0) {[m[41m[m
-[32m+[m[32m        newErrors.cards = 'Each card must be 15 characters or less';[m[41m[m
-[32m+[m[32m      }[m[41m[m
+[32m+[m[32m    } else {[m[41m
+[m
+[32m+[m[32m      // Check if any card exceeds 15 characters[m[41m
+[m
+[32m+[m[32m      const invalidCards = validCards.filter(card => card.length > 15);[m[41m
+[m
+[32m+[m[32m      if (invalidCards.length > 0) {[m[41m
+[m
+[32m+[m[32m        newErrors.cards = 'Each card must be 15 characters or less';[m[41m
+[m
+[32m+[m[32m      }[m[41m
+[m
      }[m
      [m
      setErrors(newErrors);[m
@@ -44,7 +55,8 @@ Date:   Thu Sep 25 17:40:13 2025 -0500
        <div className="modal-content" onClick={(e) => e.stopPropagation()}>[m
          <div className="modal-header">[m
 [31m-          <h3>{isEditing ? 'Edit Custom Deck' : 'Create Custom Deck'}</h3>[m
-[32m+[m[32m          <h3>{isEditing ? 'Edit Custom Deck (15 Cards Max)' : 'Create Custom Deck (15 Cards Max)'}</h3>[m[41m[m
+[32m+[m[32m          <h3>{isEditing ? 'Edit Custom Deck (15 Cards Max)' : 'Create Custom Deck (15 Cards Max)'}</h3>[m[41m
+[m
            <button className="modal-close" onClick={handleCancel}>×</button>[m
          </div>[m
          [m
@@ -52,7 +64,8 @@ Date:   Thu Sep 25 17:40:13 2025 -0500
                value={deckName}[m
                onChange={(e) => setDeckName(e.target.value)}[m
                placeholder="Enter deck name"[m
-[32m+[m[32m              maxLength={15}[m[41m[m
+[32m+[m[32m              maxLength={15}[m[41m
+[m
                required[m
              />[m
              {errors.deckName && <span className="error-text">{errors.deckName}</span>}[m
@@ -60,7 +73,8 @@ Date:   Thu Sep 25 17:40:13 2025 -0500
                      value={card}[m
                      onChange={(e) => updateCard(index, e.target.value)}[m
                      placeholder={`Card ${index + 1}`}[m
-[32m+[m[32m                    maxLength={15}[m[41m[m
+[32m+[m[32m                    maxLength={15}[m[41m
+[m
                    />[m
                    {cards.length > 1 && ([m
                      <button[m
@@ -68,10 +82,12 @@ Date:   Thu Sep 25 17:40:13 2025 -0500
                  type="button"[m
                  className="btn btn-secondary btn-sm"[m
                  onClick={addCardSlot}[m
-[32m+[m[32m                disabled={cards.length >= 15}[m[41m[m
+[32m+[m[32m                disabled={cards.length >= 15}[m[41m
+[m
                >[m
 [31m-                Add Card[m
-[32m+[m[32m                Add Card {cards.length >= 15 ? '(Max 15 cards)' : ''}[m[41m[m
+[32m+[m[32m                Add Card {cards.length >= 15 ? '(Max 15 cards)' : ''}[m[41m
+[m
                </button>[m
              </div>[m
            </div>[m
@@ -97,13 +113,15 @@ Date:   Thu Sep 25 17:40:13 2025 -0500
            </div>[m
  [m
 [31m-          <div>[m
-[32m+[m[32m          <div style={{ marginBottom: '16px' }}>[m[41m[m
+[32m+[m[32m          <div style={{ marginBottom: '16px' }}>[m[41m
+[m
              <label>[m
                <input[m
                  type="checkbox"[m
                  checked={isWatcher}[m
                  onChange={(e) => setIsWatcher(e.target.checked)}[m
-[32m+[m[32m                style={{ marginRight: '8px' }}[m[41m[m
+[32m+[m[32m                style={{ marginRight: '8px' }}[m[41m
+[m
                />[m
                Join as watcher (can reveal votes and reset game, but cannot vote)[m
              </label>[m

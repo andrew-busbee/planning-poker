@@ -20,11 +20,11 @@
     "nodemon": "^3.1.0"
   },
   "keywords": ["planning-poker", "scrum", "estimation", "agile"],
-  "author": "Andrew Busbee (https://github.com/andrew-busbee)",
+  "author": "Andrew Busbee (https://github.com/andrewbusbee)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/andrew-busbee/planning-poker.git"
+    "url": "https://github.com/andrewbusbee/planning-poker.git"
   },
   "engines": {
     "node": ">=18.0.0",

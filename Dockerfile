@@ -21,7 +21,7 @@ RUN cd client && NODE_OPTIONS="--no-deprecation" npm run build
 # Production stage
 #Previous Version FROM node:24-alpine
 FROM node:24-alpine
-LABEL org.opencontainers.image.source="https://github.com/andrew-busbee/planning-poker"
+LABEL org.opencontainers.image.source="https://github.com/andrewbusbee/planning-poker"
 
 # Set working directory
 WORKDIR /app

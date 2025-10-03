@@ -11,7 +11,7 @@ const Footer = ({ connection }) => {
         <div className="footer-left">
           <div className="app-title">
             Planning Poker <a 
-              href="https://github.com/andrew-busbee/planning-poker/releases/tag/v1.2.2" 
+              href="https://github.com/andrewbusbee/planning-poker/releases/tag/v1.2.2" 
               target="_blank" 
               rel="noopener noreferrer"
               className="version-link"
@@ -28,7 +28,7 @@ const Footer = ({ connection }) => {
         </div>
         <div className="footer-right">
           <a 
-            href="https://github.com/andrew-busbee/planning-poker" 
+            href="https://github.com/andrewbusbee/planning-poker" 
             target="_blank" 
             rel="noopener noreferrer"
             className="github-link"

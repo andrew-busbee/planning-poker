@@ -2,11 +2,11 @@
   "name": "planning-poker-client",
   "version": "1.2.2",
   "private": true,
-  "author": "Andrew Busbee (https://github.com/andrew-busbee)",
+  "author": "Andrew Busbee (https://github.com/andrewbusbee)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/andrew-busbee/planning-poker.git"
+    "url": "https://github.com/andrewbusbee/planning-poker.git"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^6.4.2",

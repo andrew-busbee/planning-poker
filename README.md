@@ -1,12 +1,12 @@
 <!-- Project / GitHub -->
-[![Release](https://img.shields.io/github/v/release/andrew-busbee/planning-poker?logo=github&label=Release)](https://github.com/andrew-busbee/planning-poker/releases)
-[![Last commit](https://img.shields.io/github/last-commit/andrew-busbee/planning-poker?logo=github&label=Last%20commit)](https://github.com/andrew-busbee/planning-poker/commits/main)
+[![Release](https://img.shields.io/github/v/release/andrewbusbee/planning-poker?logo=github&label=Release)](https://github.com/andrewbusbee/planning-poker/releases)
+[![Last commit](https://img.shields.io/github/last-commit/andrewbusbee/planning-poker?logo=github&label=Last%20commit)](https://github.com/andrewbusbee/planning-poker/commits/main)
 <!-- Docker Hub -->
 [![Release](https://img.shields.io/docker/v/andrewbusbee/planning-poker?sort=semver&logo=docker&label=Release)](https://hub.docker.com/r/andrewbusbee/planning-poker/tags)
 [![Pulls](https://img.shields.io/docker/pulls/andrewbusbee/planning-poker?logo=docker&label=Pulls)](https://hub.docker.com/r/andrewbusbee/planning-poker)
 [![Image size](https://img.shields.io/docker/image-size/andrewbusbee/planning-poker/latest?logo=docker&label=Image%20size)](https://hub.docker.com/r/andrewbusbee/planning-poker)
 
-[![License](https://img.shields.io/github/license/andrew-busbee/planning-poker?cacheBust=1)](https://github.com/andrew-busbee/planning-poker/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/andrewbusbee/planning-poker?cacheBust=1)](https://github.com/andrewbusbee/planning-poker/blob/main/LICENSE)
 
 # Planning Poker
 
@@ -54,19 +54,19 @@ Special cards:
 
 | **Light Mode** | **Dark Mode** |
 | -------------- | -------------- |
-| ![New Game Menu - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/new_game_light_mode1.2.2.png) | ![New Game Menu - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/new_game_dark_mode1.2.2.png) |
+| ![New Game Menu - Light Mode](https://github.com/andrewbusbee/planning-poker/blob/main/client/src/assets/new_game_light_mode1.2.2.png) | ![New Game Menu - Dark Mode](https://github.com/andrewbusbee/planning-poker/blob/main/client/src/assets/new_game_dark_mode1.2.2.png) |
 
 ### Player View
 
 | **Light Mode** | **Dark Mode** |
 | -------------- | -------------- |
-| ![Player View - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/player_light_mode1.2.2.png) | ![Player View - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/player_dark_mode1.2.2.png) |
+| ![Player View - Light Mode](https://github.com/andrewbusbee/planning-poker/blob/main/client/src/assets/player_light_mode1.2.2.png) | ![Player View - Dark Mode](https://github.com/andrewbusbee/planning-poker/blob/main/client/src/assets/player_dark_mode1.2.2.png) |
 
 ### Watcher View
 
 | **Light Mode** | **Dark Mode** |
 | -------------- | -------------- |
-| ![Watcher View - Light Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_light_mode1.2.2.png) | ![Watcher View - Dark Mode](https://github.com/andrew-busbee/planning-poker/blob/main/client/src/assets/watcher_dark_mode1.2.2.png) |
+| ![Watcher View - Light Mode](https://github.com/andrewbusbee/planning-poker/blob/main/client/src/assets/watcher_light_mode1.2.2.png) | ![Watcher View - Dark Mode](https://github.com/andrewbusbee/planning-poker/blob/main/client/src/assets/watcher_dark_mode1.2.2.png) |
 
 
 ## Quick Start with Docker
@@ -76,14 +76,14 @@ The Docker image is published as a multi-arch build and works on:
 - ARM64 (Apple Silicon, Raspberry Pi 4/5, ARM servers)
 
 
-The easiest way to deploy the application is with Docker Compose.  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck.
+The easiest way to deploy the application is with Docker Compose.  The [sample docker-compose.yml](https://github.com/andrewbusbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck.
 
 ### Docker-compose (Recommended)
-1. Create a docker-compose.yml with the following content (replace /path/to/data with what you set above).  The [sample docker-compose.yml](https://github.com/andrew-busbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck.
+1. Create a docker-compose.yml with the following content (replace /path/to/data with what you set above).  The [sample docker-compose.yml](https://github.com/andrewbusbee/planning-poker/blob/main/docker-compose.yml) file also has an optional healthcheck.
 ```yml
 services:
   planning-poker:
-    image: ghcr.io/andrew-busbee/planning-poker:latest
+    image: ghcr.io/andrewbusbee/planning-poker:latest
     ports:
       - "3001:3001"
     environment:
@@ -114,7 +114,7 @@ docker run -d \
   -e LOG_LEVEL=INFO \
   --restart unless-stopped \
   -v data:/app/data \
-  ghcr.io/andrew-busbee/planning-poker:latest
+  ghcr.io/andrewbusbee/planning-poker:latest
 ```
 2. Open http://localhost:3001 in your browser.
 
