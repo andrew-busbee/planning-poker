@@ -179,3 +179,12 @@ For issues and questions, please create an issue in the repository.
 ## License
 
 MIT License - see LICENSE file for details
+
+## 🤖 AI-Assisted Development
+
+This project was built with the support of modern **AI coding tools** to accelerate prototyping and implementation.  
+- AI was used to generate scaffolding, boilerplate, and draft functions.  
+- All code has been **curated, reviewed, and tested** by a human before release.  
+- The use of AI allowed for faster iteration and a focus on architecture, usability, and overall project quality.  
+
+Community contributions and reviews are encouraged to further strengthen and expand the project.  
