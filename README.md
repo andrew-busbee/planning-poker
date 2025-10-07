@@ -6,7 +6,7 @@
 [![Pulls](https://img.shields.io/docker/pulls/andrewbusbee/planning-poker?logo=docker&label=Pulls)](https://hub.docker.com/r/andrewbusbee/planning-poker)
 [![Image size](https://img.shields.io/docker/image-size/andrewbusbee/planning-poker/latest?logo=docker&label=Image%20size)](https://hub.docker.com/r/andrewbusbee/planning-poker)
 
-[![License](https://img.shields.io/github/license/andrewbusbee/planning-poker?cacheBust=1)](https://github.com/andrewbusbee/planning-poker/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/andrewbusbee/planning-poker?branch=main&cacheSeconds=60&v=4)](https://github.com/andrewbusbee/planning-poker/blob/main/LICENSE)
 
 # Planning Poker
 
